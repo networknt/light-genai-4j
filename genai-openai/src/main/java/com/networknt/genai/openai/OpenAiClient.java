@@ -1,0 +1,180 @@
+package com.networknt.genai.openai;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.networknt.client.Http2Client;
+import com.networknt.config.Config;
+import com.networknt.genai.GenAiClient;
+import io.undertow.client.ClientConnection;
+import io.undertow.client.ClientRequest;
+import io.undertow.client.ClientResponse;
+import io.undertow.util.Headers;
+import io.undertow.util.Methods;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.xnio.OptionMap;
+
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+
+public class OpenAiClient implements GenAiClient {
+    private static final Logger logger = LoggerFactory.getLogger(OpenAiClient.class);
+    private static final OpenAiConfig config = OpenAiConfig.load();
+    private static final Http2Client client = Http2Client.getInstance();
+    private static final ObjectMapper mapper = Config.getInstance().getMapper();
+
+    @Override
+    public String chat(java.util.List<com.networknt.genai.ChatMessage> messages) {
+        return chat(config.getModel(), messages);
+    }
+
+    public String chat(String model, java.util.List<com.networknt.genai.ChatMessage> messages) {
+        String result = null;
+        try {
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("model", model);
+            requestBody.put("messages", messages);
+
+            String jsonBody = mapper.writeValueAsString(requestBody);
+            URI uri = new URI(config.getUrl());
+            ClientConnection connection = client
+                    .connect(uri, Http2Client.WORKER, Http2Client.SSL, Http2Client.BUFFER_POOL, OptionMap.EMPTY).get();
+            try {
+                ClientRequest request = new ClientRequest().setMethod(Methods.POST).setPath(uri.getPath());
+                request.getRequestHeaders().put(Headers.HOST, uri.getHost());
+                request.getRequestHeaders().put(Headers.CONTENT_TYPE, "application/json");
+                request.getRequestHeaders().put(Headers.AUTHORIZATION, "Bearer " + config.getApiKey());
+                request.getRequestHeaders().put(Headers.TRANSFER_ENCODING, "chunked");
+
+                final CountDownLatch latch = new CountDownLatch(1);
+                final AtomicReference<ClientResponse> reference = new AtomicReference<>();
+                connection.sendRequest(request, client.createClientCallback(reference, latch, jsonBody));
+                latch.await(10, TimeUnit.SECONDS);
+
+                ClientResponse response = reference.get();
+                int statusCode = response.getResponseCode();
+                String body = response.getAttachment(Http2Client.RESPONSE_BODY);
+
+                if (statusCode == 200) {
+                    Map<String, Object> responseMap = mapper.readValue(body, Map.class);
+                    List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap.get("choices");
+                    if (choices != null && !choices.isEmpty()) {
+                        Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+                        result = (String) message.get("content");
+                    }
+                } else {
+                    logger.error("OpenAI API error: {} {}", statusCode, body);
+                }
+            } finally {
+                client.returnConnection(connection);
+            }
+        } catch (Exception e) {
+            logger.error("Exception invoking OpenAI API", e);
+        }
+        return result;
+    }
+
+    @Override
+    public void chatStream(java.util.List<com.networknt.genai.ChatMessage> messages,
+            com.networknt.genai.StreamCallback callback) {
+        try {
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("model", config.getModel());
+            requestBody.put("messages", messages);
+            requestBody.put("stream", true);
+
+            String jsonBody = mapper.writeValueAsString(requestBody);
+            URI uri = new URI(config.getUrl());
+            ClientConnection connection = client
+                    .connect(uri, Http2Client.WORKER, Http2Client.SSL, Http2Client.BUFFER_POOL, OptionMap.EMPTY).get();
+
+            ClientRequest request = new ClientRequest().setMethod(Methods.POST).setPath(uri.getPath());
+            request.getRequestHeaders().put(Headers.HOST, uri.getHost());
+            request.getRequestHeaders().put(Headers.CONTENT_TYPE, "application/json");
+            request.getRequestHeaders().put(Headers.AUTHORIZATION, "Bearer " + config.getApiKey());
+            request.getRequestHeaders().put(Headers.TRANSFER_ENCODING, "chunked");
+
+            connection.sendRequest(request, new io.undertow.client.ClientCallback<io.undertow.client.ClientExchange>() {
+                @Override
+                public void completed(io.undertow.client.ClientExchange exchange) {
+                    exchange.setResponseListener(
+                            new io.undertow.client.ClientCallback<io.undertow.client.ClientExchange>() {
+                                @Override
+                                public void completed(io.undertow.client.ClientExchange result) {
+                                    result.getResponseChannel().getReadSetter()
+                                            .set(new org.xnio.ChannelListener<org.xnio.channels.StreamSourceChannel>() {
+                                                @Override
+                                                public void handleEvent(org.xnio.channels.StreamSourceChannel channel) {
+                                                    try {
+                                                        java.nio.ByteBuffer buffer = java.nio.ByteBuffer.allocate(1024);
+                                                        int read = 0;
+                                                        while ((read = channel.read(buffer)) > 0) {
+                                                            buffer.flip();
+                                                            String chunk = new String(buffer.array(), 0, read,
+                                                                    java.nio.charset.StandardCharsets.UTF_8);
+                                                            String[] lines = chunk.split("\n");
+                                                            for (String line : lines) {
+                                                                line = line.trim();
+                                                                if (line.startsWith("data: ")) {
+                                                                    String data = line.substring(6).trim();
+                                                                    if ("[DONE]".equals(data)) {
+                                                                        callback.onComplete();
+                                                                    } else {
+                                                                        try {
+                                                                            Map<String, Object> responseMap = mapper
+                                                                                    .readValue(data, Map.class);
+                                                                            List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap
+                                                                                    .get("choices");
+                                                                            if (choices != null && !choices.isEmpty()) {
+                                                                                Map<String, Object> delta = (Map<String, Object>) choices
+                                                                                        .get(0).get("delta");
+                                                                                if (delta != null) {
+                                                                                    String content = (String) delta
+                                                                                            .get("content");
+                                                                                    if (content != null)
+                                                                                        callback.onEvent(content);
+                                                                                }
+                                                                            }
+                                                                        } catch (Exception e) {
+                                                                            // Ignore parse error for partial lines
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                            buffer.clear();
+                                                        }
+                                                        if (read == -1) {
+                                                            // End of stream
+                                                        }
+                                                    } catch (java.io.IOException e) {
+                                                        callback.onError(e);
+                                                    }
+                                                }
+                                            });
+                                    result.getResponseChannel().resumeReads();
+                                }
+
+                                @Override
+                                public void failed(java.io.IOException e) {
+                                    callback.onError(e);
+                                }
+                            });
+                }
+
+                @Override
+                public void failed(java.io.IOException e) {
+                    callback.onError(e);
+                }
+            });
+
+        } catch (Exception e) {
+            callback.onError(e);
+        }
+    }
+}
