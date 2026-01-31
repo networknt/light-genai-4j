@@ -84,7 +84,11 @@ public class BedrockClient implements GenAiClient {
                             .onComplete(() -> callback.onComplete())
                             .onError(e -> callback.onError(e))
                             .build())
-                    .join();
+                    .whenComplete((response, error) -> {
+                        if (error != null) {
+                            callback.onError(error);
+                        }
+                    });
 
         } catch (Exception e) {
             callback.onError(e);

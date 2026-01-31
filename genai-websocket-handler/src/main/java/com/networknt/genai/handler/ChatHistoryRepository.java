@@ -1,5 +1,6 @@
 package com.networknt.genai.handler;
 
+import com.networknt.genai.ChatMessage;
 import java.util.List;
 
 /**
