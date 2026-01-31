@@ -74,7 +74,10 @@ public class BedrockClient implements GenAiClient {
                                         com.fasterxml.jackson.databind.JsonNode node = com.networknt.config.Config
                                                 .getInstance().getMapper().readTree(chunk);
                                         if (node.has("delta") && node.get("delta").has("text")) {
-                                            callback.onEvent(node.get("delta").get("text").asText());
+                                            String text = node.get("delta").get("text").asText();
+                                            if (text != null && !text.isEmpty()) {
+                                                callback.onEvent(text);
+                                            }
                                         }
                                     } catch (Exception e) {
                                         // log or ignore

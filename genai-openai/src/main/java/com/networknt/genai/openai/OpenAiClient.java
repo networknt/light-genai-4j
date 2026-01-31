@@ -153,12 +153,17 @@ public class OpenAiClient implements GenAiClient {
                                                                                                         Map<String, Object> delta = (Map<String, Object>) choices
                                                                                                                 .get(0)
                                                                                                                 .get("delta");
-                                                                                                        if (delta != null) {
+                                                                                                        if (delta != null
+                                                                                                                && delta.containsKey(
+                                                                                                                        "content")) {
                                                                                                             String content = (String) delta
                                                                                                                     .get("content");
-                                                                                                            if (content != null)
+                                                                                                            if (content != null
+                                                                                                                    && !content
+                                                                                                                            .isEmpty()) {
                                                                                                                 callback.onEvent(
                                                                                                                         content);
+                                                                                                            }
                                                                                                         }
                                                                                                     }
                                                                                                 } catch (Exception e) {

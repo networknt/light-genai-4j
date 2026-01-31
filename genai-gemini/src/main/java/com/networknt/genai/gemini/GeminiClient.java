@@ -228,7 +228,8 @@ public class GeminiClient implements GenAiClient {
                                                                                                         String text = (String) resParts
                                                                                                                 .get(0)
                                                                                                                 .get("text");
-                                                                                                        if (text != null)
+                                                                                                        if (text != null
+                                                                                                                && !text.isEmpty())
                                                                                                             callback.onEvent(
                                                                                                                     text);
                                                                                                     }

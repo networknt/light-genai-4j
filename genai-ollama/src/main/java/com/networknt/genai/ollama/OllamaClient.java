@@ -143,7 +143,8 @@ public class OllamaClient implements GenAiClient {
                                                                                     if (message != null) {
                                                                                         String content = (String) message
                                                                                                 .get("content");
-                                                                                        if (content != null)
+                                                                                        if (content != null
+                                                                                                && !content.isEmpty())
                                                                                             callback.onEvent(content);
                                                                                     }
                                                                                     Boolean done = (Boolean) responseMap

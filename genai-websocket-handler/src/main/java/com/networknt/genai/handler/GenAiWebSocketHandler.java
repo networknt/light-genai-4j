@@ -85,12 +85,18 @@ public class GenAiWebSocketHandler implements WebSocketApplicationHandler {
                         StringBuilder responseBuilder = new StringBuilder();
 
                         genAiClient.chatStream(history, new StreamCallback() {
+                            private final StringBuilder buffer = new StringBuilder();
+
                             @Override
                             public void onEvent(String content) {
-                                // Send chunk to client
+                                // Buffer content and send only when newline is detected to avoid single word per line
                                 try {
-                                    WebSockets.sendText(content, channel, null);
+                                    buffer.append(content);
                                     responseBuilder.append(content);
+                                    if (buffer.toString().contains("\n")) {
+                                        WebSockets.sendText(buffer.toString(), channel, null);
+                                        buffer.setLength(0);
+                                    }
                                 } catch (Exception e) {
                                     logger.error("Error sending message chunk", e);
                                 }
@@ -98,6 +104,14 @@ public class GenAiWebSocketHandler implements WebSocketApplicationHandler {
 
                             @Override
                             public void onComplete() {
+                                // Send remaining buffer
+                                if (buffer.length() > 0) {
+                                    try {
+                                        WebSockets.sendText(buffer.toString(), channel, null);
+                                    } catch (Exception e) {
+                                        logger.error("Error sending last message chunk", e);
+                                    }
+                                }
                                 // Add full model response to history
                                 ChatMessage modelMsg = new ChatMessage("assistant", responseBuilder.toString());
                                 historyRepository.addMessage(sessionId, modelMsg);
