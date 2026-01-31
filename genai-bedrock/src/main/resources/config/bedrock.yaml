@@ -1,0 +1,5 @@
+# Bedrock GenAI configuration
+# AWS Region
+region: ${bedrock.region:}
+# Model ID
+modelId: ${bedrock.modelId:}

@@ -1,0 +1,7 @@
+# OpenAI GenAI configuration
+# OpenAI API URL
+url: ${openai.url:}
+# Model Name
+model: ${openai.model:}
+# API Key
+apiKey: ${openai.apiKey:}

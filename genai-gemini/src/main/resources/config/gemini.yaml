@@ -1,0 +1,7 @@
+# Gemini GenAI configuration
+# Gemini API URL
+url: ${gemini.url:}
+# Model Name
+model: ${gemini.model:}
+# API Key
+apiKey: ${gemini.apiKey:}

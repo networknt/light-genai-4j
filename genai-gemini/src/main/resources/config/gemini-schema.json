@@ -1,0 +1,19 @@
+{
+  "$schema" : "http://json-schema.org/draft-07/schema#",
+  "type" : "object",
+  "required" : [ "url", "model", "apiKey" ],
+  "properties" : {
+    "url" : {
+      "type" : "string",
+      "description" : "Gemini API URL"
+    },
+    "model" : {
+      "type" : "string",
+      "description" : "Model Name"
+    },
+    "apiKey" : {
+      "type" : "string",
+      "description" : "API Key"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "$schema" : "http://json-schema.org/draft-07/schema#",
+  "type" : "object",
+  "required" : [ "ollamaUrl", "model" ],
+  "properties" : {
+    "ollamaUrl" : {
+      "type" : "string",
+      "description" : "Ollama API URL"
+    },
+    "model" : {
+      "type" : "string",
+      "description" : "Model Name"
+    }
+  }
+}

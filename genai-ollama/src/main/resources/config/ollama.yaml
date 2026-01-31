@@ -1,0 +1,5 @@
+# Ollama GenAI configuration
+# Ollama API URL
+ollamaUrl: ${ollama.ollamaUrl:}
+# Model Name
+model: ${ollama.model:}

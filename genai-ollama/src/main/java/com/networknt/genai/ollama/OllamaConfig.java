@@ -1,46 +1,72 @@
 package com.networknt.genai.ollama;
 
 import com.networknt.config.Config;
+import com.networknt.config.schema.ConfigSchema;
+import com.networknt.config.schema.OutputFormat;
+import com.networknt.config.schema.StringField;
+import com.networknt.server.ModuleRegistry;
+
 import java.util.Map;
 
+@ConfigSchema(configKey = "ollama", configName = "ollama", configDescription = "Ollama GenAI configuration", outputFormats = {
+        OutputFormat.JSON_SCHEMA, OutputFormat.YAML, OutputFormat.CLOUD })
 public class OllamaConfig {
     public static final String CONFIG_NAME = "ollama";
-    private String ollamaUrl;
-    private String model;
-
     private static final String OLLAMA_URL = "ollamaUrl";
     private static final String MODEL = "model";
 
-    private final Config config;
-    private Map<String, Object> mappedConfig;
+    @StringField(configFieldName = OLLAMA_URL, externalizedKeyName = OLLAMA_URL, description = "Ollama API URL")
+    private String ollamaUrl;
 
-    private OllamaConfig() {
-        this(Config.getInstance());
+    @StringField(configFieldName = MODEL, externalizedKeyName = MODEL, description = "Model Name")
+    private String model;
+
+    private static volatile OllamaConfig instance;
+    private final Map<String, Object> mappedConfig;
+
+    private OllamaConfig(String configName) {
+        mappedConfig = Config.getInstance().getJsonMapConfig(configName);
+        setConfigData();
     }
 
-    private OllamaConfig(Config config) {
-        this.config = config;
-        this.mappedConfig = config.getJsonMapConfigNoCache(CONFIG_NAME);
-        setConfigData();
+    private OllamaConfig() {
+        this(CONFIG_NAME);
     }
 
     public static OllamaConfig load() {
-        return new OllamaConfig();
+        return load(CONFIG_NAME);
     }
 
-    public void reload() {
-        mappedConfig = config.getJsonMapConfigNoCache(CONFIG_NAME);
-        setConfigData();
+    public static OllamaConfig load(String configName) {
+        OllamaConfig config = instance;
+        if (config == null || config.getMappedConfig() != Config.getInstance().getJsonMapConfig(configName)) {
+            synchronized (OllamaConfig.class) {
+                config = instance;
+                if (config == null || config.getMappedConfig() != Config.getInstance().getJsonMapConfig(configName)) {
+                    config = new OllamaConfig(configName);
+                    instance = config;
+                    ModuleRegistry.registerModule(configName, OllamaConfig.class.getName(),
+                            Config.getNoneDecryptedInstance().getJsonMapConfigNoCache(configName), null);
+                }
+            }
+        }
+        return config;
+    }
+
+    public Map<String, Object> getMappedConfig() {
+        return mappedConfig;
     }
 
     private void setConfigData() {
-        Object object = mappedConfig.get(OLLAMA_URL);
-        if (object != null) {
-            ollamaUrl = (String) object;
-        }
-        object = mappedConfig.get(MODEL);
-        if (object != null) {
-            model = (String) object;
+        if (mappedConfig != null) {
+            Object object = mappedConfig.get(OLLAMA_URL);
+            if (object != null) {
+                ollamaUrl = (String) object;
+            }
+            object = mappedConfig.get(MODEL);
+            if (object != null) {
+                model = (String) object;
+            }
         }
     }
 

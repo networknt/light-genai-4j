@@ -1,46 +1,72 @@
 package com.networknt.genai.bedrock;
 
 import com.networknt.config.Config;
+import com.networknt.config.schema.ConfigSchema;
+import com.networknt.config.schema.OutputFormat;
+import com.networknt.config.schema.StringField;
+import com.networknt.server.ModuleRegistry;
+
 import java.util.Map;
 
+@ConfigSchema(configKey = "bedrock", configName = "bedrock", configDescription = "Bedrock GenAI configuration", outputFormats = {
+        OutputFormat.JSON_SCHEMA, OutputFormat.YAML, OutputFormat.CLOUD })
 public class BedrockConfig {
     public static final String CONFIG_NAME = "bedrock";
-    private String region;
-    private String modelId;
-
     private static final String REGION = "region";
     private static final String MODEL_ID = "modelId";
 
-    private final Config config;
-    private Map<String, Object> mappedConfig;
+    @StringField(configFieldName = REGION, externalizedKeyName = REGION, description = "AWS Region")
+    private String region;
 
-    private BedrockConfig() {
-        this(Config.getInstance());
+    @StringField(configFieldName = MODEL_ID, externalizedKeyName = MODEL_ID, description = "Model ID")
+    private String modelId;
+
+    private static volatile BedrockConfig instance;
+    private final Map<String, Object> mappedConfig;
+
+    private BedrockConfig(String configName) {
+        mappedConfig = Config.getInstance().getJsonMapConfig(configName);
+        setConfigData();
     }
 
-    private BedrockConfig(Config config) {
-        this.config = config;
-        this.mappedConfig = config.getJsonMapConfigNoCache(CONFIG_NAME);
-        setConfigData();
+    private BedrockConfig() {
+        this(CONFIG_NAME);
     }
 
     public static BedrockConfig load() {
-        return new BedrockConfig();
+        return load(CONFIG_NAME);
     }
 
-    public void reload() {
-        mappedConfig = config.getJsonMapConfigNoCache(CONFIG_NAME);
-        setConfigData();
+    public static BedrockConfig load(String configName) {
+        BedrockConfig config = instance;
+        if (config == null || config.getMappedConfig() != Config.getInstance().getJsonMapConfig(configName)) {
+            synchronized (BedrockConfig.class) {
+                config = instance;
+                if (config == null || config.getMappedConfig() != Config.getInstance().getJsonMapConfig(configName)) {
+                    config = new BedrockConfig(configName);
+                    instance = config;
+                    ModuleRegistry.registerModule(configName, BedrockConfig.class.getName(),
+                            Config.getNoneDecryptedInstance().getJsonMapConfigNoCache(configName), null);
+                }
+            }
+        }
+        return config;
+    }
+
+    public Map<String, Object> getMappedConfig() {
+        return mappedConfig;
     }
 
     private void setConfigData() {
-        Object object = mappedConfig.get(REGION);
-        if (object != null) {
-            region = (String) object;
-        }
-        object = mappedConfig.get(MODEL_ID);
-        if (object != null) {
-            modelId = (String) object;
+        if (mappedConfig != null) {
+            Object object = mappedConfig.get(REGION);
+            if (object != null) {
+                region = (String) object;
+            }
+            object = mappedConfig.get(MODEL_ID);
+            if (object != null) {
+                modelId = (String) object;
+            }
         }
     }
 
