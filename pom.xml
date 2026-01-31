@@ -25,6 +25,7 @@
         <module>genai-bedrock</module>
         <module>genai-openai</module>
         <module>genai-gemini</module>
+        <module>genai-websocket-handler</module>
     </modules>
 
     <licenses>
@@ -166,6 +167,11 @@
                 <artifactId>junit-jupiter-engine</artifactId>
                 <version>${version.junit}</version>
                 <scope>test</scope>
+            </dependency>
+        <dependency>
+                <groupId>com.networknt</groupId>
+                <artifactId>genai-websocket-handler</artifactId>
+                <version>${project.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
