@@ -105,7 +105,7 @@ public class GenAiWebSocketHandler implements WebSocketApplicationHandler {
                             @Override
                             public void onComplete() {
                                 // Send remaining buffer
-                                if (!buffer.isEmpty()) {
+                                if (buffer.length() > 0) {
                                     try {
                                         WebSockets.sendText(buffer.toString(), channel, null);
                                     } catch (Exception e) {
