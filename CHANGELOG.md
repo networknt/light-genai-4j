@@ -1,0 +1,8 @@
+# Change Log
+
+## [2.3.1](https://github.com/networknt/light-genai-4j/tree/2.3.1) (2025-09-19)
+
+
+**Merged pull requests:**
+
+
