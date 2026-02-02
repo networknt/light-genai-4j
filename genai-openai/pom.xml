@@ -10,6 +10,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>genai-openai</artifactId>
+    <packaging>jar</packaging>
+    <name>genai-openai</name>
+    <description>An openai client module.</description>
 
     <dependencies>
         <dependency>

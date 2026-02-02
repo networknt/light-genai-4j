@@ -10,6 +10,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>genai-gemini</artifactId>
+    <packaging>jar</packaging>
+    <name>genai-gemini</name>
+    <description>A gemini client module.</description>
 
     <dependencies>
         <dependency>

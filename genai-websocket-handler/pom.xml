@@ -12,6 +12,7 @@
 
     <artifactId>genai-websocket-handler</artifactId>
     <packaging>jar</packaging>
+    <name>genai-websocket-handler</name>
     <description>GenAI WebSocket Handler</description>
 
     <dependencies>

@@ -10,6 +10,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>genai-bedrock</artifactId>
+    <packaging>jar</packaging>
+    <name>genai-bedrock</name>
+    <description>A client module for bedrock.</description>
 
     <dependencies>
         <dependency>
