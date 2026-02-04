@@ -1,0 +1,32 @@
+{
+  "$schema" : "http://json-schema.org/draft-07/schema#",
+  "type" : "object",
+  "required" : [ "url", "model", "clientId", "clientSecret", "tokenUrl" ],
+  "properties" : {
+    "url" : {
+      "type" : "string",
+      "description" : "Antigravity API URL",
+      "default" : "https://api.google.antigravity.com/v1/chat/completions"
+    },
+    "model" : {
+      "type" : "string",
+      "description" : "Model ID",
+      "default" : "antigravity-1.0"
+    },
+    "clientId" : {
+      "type" : "string",
+      "description" : "OAuth Client ID",
+      "default" : "your_client_id"
+    },
+    "clientSecret" : {
+      "type" : "string",
+      "description" : "OAuth Client Secret",
+      "default" : "your_client_secret"
+    },
+    "tokenUrl" : {
+      "type" : "string",
+      "description" : "OAuth Token URL",
+      "default" : "https://oauth2.googleapis.com/token"
+    }
+  }
+}

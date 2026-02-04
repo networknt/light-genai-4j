@@ -10,6 +10,7 @@ import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelResponse;
 import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeAsyncClient;
 import com.networknt.genai.GenAiClient;
+import com.networknt.genai.RequestOptions;
 
 public class BedrockClient implements GenAiClient {
     private static final Logger logger = LoggerFactory.getLogger(BedrockClient.class);
@@ -25,6 +26,11 @@ public class BedrockClient implements GenAiClient {
 
     @Override
     public String chat(java.util.List<com.networknt.genai.ChatMessage> messages) {
+        return chat(messages, new RequestOptions(config.getModelId()));
+    }
+
+    @Override
+    public String chat(java.util.List<com.networknt.genai.ChatMessage> messages, RequestOptions options) {
         // Defaulting to Claude 3 format since it's the most common Chat model on
         // Bedrock
         // Format: { "anthropic_version": "bedrock-2023-05-31", "messages": [...] }
@@ -36,7 +42,8 @@ public class BedrockClient implements GenAiClient {
             bodyMap.put("messages", messages);
 
             String jsonBody = com.networknt.config.Config.getInstance().getMapper().writeValueAsString(bodyMap);
-            return invokeModel(config.getModelId(), jsonBody);
+            String modelId = options.getModel() != null ? options.getModel() : config.getModelId();
+            return invokeModel(modelId, jsonBody);
         } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
             logger.error("Error creating Bedrock request body", e);
             return null;
@@ -45,6 +52,13 @@ public class BedrockClient implements GenAiClient {
 
     @Override
     public void chatStream(java.util.List<com.networknt.genai.ChatMessage> messages,
+            com.networknt.genai.StreamCallback callback) {
+        chatStream(messages, new RequestOptions(config.getModelId()), callback);
+    }
+
+    @Override
+    public void chatStream(java.util.List<com.networknt.genai.ChatMessage> messages,
+            RequestOptions options,
             com.networknt.genai.StreamCallback callback) {
         try {
             java.util.Map<String, Object> bodyMap = new java.util.HashMap<>();
@@ -57,7 +71,7 @@ public class BedrockClient implements GenAiClient {
             SdkBytes payload = SdkBytes.fromString(jsonBody, StandardCharsets.UTF_8);
             software.amazon.awssdk.services.bedrockruntime.model.InvokeModelWithResponseStreamRequest request = software.amazon.awssdk.services.bedrockruntime.model.InvokeModelWithResponseStreamRequest
                     .builder()
-                    .modelId(config.getModelId())
+                    .modelId(options.getModel() != null ? options.getModel() : config.getModelId())
                     .body(payload)
                     .contentType("application/json")
                     .build();

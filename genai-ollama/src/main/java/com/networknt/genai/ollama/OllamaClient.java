@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import com.networknt.genai.GenAiClient;
 import com.networknt.genai.ChatMessage;
+import com.networknt.genai.RequestOptions;
 
 public class OllamaClient implements GenAiClient {
     private static final Logger logger = LoggerFactory.getLogger(OllamaClient.class);
@@ -32,7 +33,12 @@ public class OllamaClient implements GenAiClient {
 
     @Override
     public String chat(java.util.List<ChatMessage> messages) {
-        return chat(config.getModel(), messages);
+        return chat(messages, new RequestOptions(config.getModel()));
+    }
+
+    @Override
+    public String chat(java.util.List<ChatMessage> messages, RequestOptions options) {
+        return chat(options.getModel() != null ? options.getModel() : config.getModel(), messages);
     }
 
     public String chat(String model, java.util.List<ChatMessage> messages) {
@@ -80,10 +86,18 @@ public class OllamaClient implements GenAiClient {
 
     @Override
     public void chatStream(java.util.List<ChatMessage> messages, com.networknt.genai.StreamCallback callback) {
+        chatStream(messages, new RequestOptions(config.getModel()), callback);
+    }
+
+    @Override
+    public void chatStream(java.util.List<ChatMessage> messages, RequestOptions options,
+            com.networknt.genai.StreamCallback callback) {
         try {
             logger.debug("chatStream called with messages: {}", messages.size());
+            final String model = options.getModel() != null ? options.getModel() : config.getModel();
+
             Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", config.getModel());
+            requestBody.put("model", model);
             requestBody.put("messages", messages);
             requestBody.put("stream", true);
 

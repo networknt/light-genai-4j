@@ -23,6 +23,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.networknt.genai.RequestOptions;
+
 public class GeminiClient implements GenAiClient {
     private static final Logger logger = LoggerFactory.getLogger(GeminiClient.class);
     private static final GeminiConfig config = GeminiConfig.load();
@@ -31,7 +33,12 @@ public class GeminiClient implements GenAiClient {
 
     @Override
     public String chat(java.util.List<com.networknt.genai.ChatMessage> messages) {
-        return chat(config.getModel(), messages);
+        return chat(messages, new RequestOptions(config.getModel()));
+    }
+
+    @Override
+    public String chat(java.util.List<com.networknt.genai.ChatMessage> messages, RequestOptions options) {
+        return chat(options.getModel() != null ? options.getModel() : config.getModel(), messages);
     }
 
     public String chat(String model, java.util.List<com.networknt.genai.ChatMessage> messages) {
@@ -109,10 +116,18 @@ public class GeminiClient implements GenAiClient {
     @Override
     public void chatStream(java.util.List<com.networknt.genai.ChatMessage> messages,
             com.networknt.genai.StreamCallback callback) {
+        chatStream(messages, new RequestOptions(config.getModel()), callback);
+    }
+
+    @Override
+    public void chatStream(java.util.List<com.networknt.genai.ChatMessage> messages,
+            RequestOptions options,
+            com.networknt.genai.StreamCallback callback) {
         try {
             // URL format for streaming:
             // https://generativelanguage.googleapis.com/v1beta/models/{model}:streamGenerateContent
-            String endpoint = String.format(config.getUrl(), config.getModel()).replace(":generateContent",
+            String model = options.getModel() != null ? options.getModel() : config.getModel();
+            String endpoint = String.format(config.getUrl(), model).replace(":generateContent",
                     ":streamGenerateContent") + "?key=" + config.getApiKey();
 
             // Map ChatMessage list to Gemini structure

@@ -18,6 +18,7 @@ import java.util.Map;
 public class GenAiWebSocketHandler implements WebSocketApplicationHandler {
     private static final Logger logger = LoggerFactory.getLogger(GenAiWebSocketHandler.class);
 
+    private final AgentRepository agentRepository;
     private final ChatSessionRepository sessionRepository;
     private final ChatHistoryRepository historyRepository;
     private final GenAiClient genAiClient;
@@ -30,6 +31,9 @@ public class GenAiWebSocketHandler implements WebSocketApplicationHandler {
 
         ChatHistoryRepository historyRepo = SingletonServiceFactory.getBean(ChatHistoryRepository.class);
         this.historyRepository = historyRepo != null ? historyRepo : new InMemoryChatHistoryRepository();
+        
+        AgentRepository agentRepo = SingletonServiceFactory.getBean(AgentRepository.class);
+        this.agentRepository = agentRepo != null ? agentRepo : new ConfigAgentRepository();
 
         this.genAiClient = SingletonServiceFactory.getBean(GenAiClient.class);
         if (this.genAiClient == null) {
@@ -39,40 +43,49 @@ public class GenAiWebSocketHandler implements WebSocketApplicationHandler {
 
     @Override
     public void onConnect(WebSocketHttpExchange exchange, WebSocketChannel channel) {
-        // Parse query parameters for userId.
-        // WebSocketHttpExchange does not expose query parameters directly in a map, 
-        // we parse the query string.
+        // Parse query parameters for userId and agentId
         String queryString = exchange.getQueryString();
         String tempUserId = "anonymous";
-        String tempModel = "default";
+        String tempAgentId = "default";
+        String tempSessionId = null;
         
         if (queryString != null && !queryString.isEmpty()) {
-            // Simple parsing for userId=...
             String[] pairs = queryString.split("&");
             for (String pair : pairs) {
                 String[] kv = pair.split("=");
                 if (kv.length == 2) {
                     if ("userId".equals(kv[0])) tempUserId = kv[1];
-                    if ("model".equals(kv[0])) tempModel = kv[1];
+                    if ("agentId".equals(kv[0])) tempAgentId = kv[1];
+                    if ("sessionId".equals(kv[0])) tempSessionId = kv[1];
                 }
             }
         }
+        
         final String userId = tempUserId;
-        final String model = tempModel;
+        final String agentId = tempAgentId;
         
-        logger.info("New connection for user: {}", userId);
+        // Resolve Agent
+        final AgentDefinition agentDef = agentRepository.getAgent(agentId);
+        if (agentDef == null) {
+            logger.error("Agent not found: {}", agentId);
+            // Consider sending error and closing, but for now just log
+        }
         
-        // Create or get session
-        ChatSession session = sessionRepository.createSession(userId, model);
-        String sessionId = session.getSessionId();
-
+        // Ensure Session ID
+        final String sessionId = tempSessionId != null ? tempSessionId : java.util.UUID.randomUUID().toString();
+        
+        logger.info("New connection - Agent: {}, User: {}, Session: {}", agentId, userId, sessionId);
+        
+        // Create or get session (persisted)
+        ChatSession session = sessionRepository.createSession(userId, agentId); // Assuming createSession can handle this or mapping logic
+        
+        // Setup Receive Listener
         channel.getReceiveSetter().set(new AbstractReceiveListener() {
             @Override
             protected void onFullTextMessage(WebSocketChannel channel, BufferedTextMessage message) {
                 final String payload = message.getData();
                 logger.debug("Received message from {}: {}", userId, payload);
 
-                // Dispatch to worker thread to avoid blocking IO thread with GenAiClient calls
                 channel.getWorker().execute(() -> {
                     // Add user message to history
                     ChatMessage userMsg = new ChatMessage("user", payload);
@@ -80,16 +93,27 @@ public class GenAiWebSocketHandler implements WebSocketApplicationHandler {
 
                     // Invoke LLM
                     List<ChatMessage> history = historyRepository.getHistory(sessionId);
-
+                    
+                    // Inject System Prompt if it's the start of history or handled by Client/Repo logic
+                    // For simplicity, we assume the Client or Repo handles ensuring system prompt is present
+                    // OR we prepend it here if history is empty. 
+                    // Better approach: Let GenAiClient or Model logic handle system prompt placement via RequestOptions
+                    
                     if (genAiClient != null) {
                         StringBuilder responseBuilder = new StringBuilder();
+                        
+                        // Create Request Options
+                        com.networknt.genai.RequestOptions options = new com.networknt.genai.RequestOptions();
+                        if (agentDef != null) {
+                             if (agentDef.getModel() != null) options.setModel(agentDef.getModel());
+                             if (agentDef.getSystemPrompt() != null) options.setSystemPrompt(agentDef.getSystemPrompt());
+                        }
 
-                        genAiClient.chatStream(history, new StreamCallback() {
+                        genAiClient.chatStream(history, options, new StreamCallback() {
                             private final StringBuilder buffer = new StringBuilder();
 
                             @Override
                             public void onEvent(String content) {
-                                // Buffer content and send only when newline is detected to avoid single word per line
                                 try {
                                     buffer.append(content);
                                     responseBuilder.append(content);
@@ -104,7 +128,6 @@ public class GenAiWebSocketHandler implements WebSocketApplicationHandler {
 
                             @Override
                             public void onComplete() {
-                                // Send remaining buffer
                                 if (buffer.length() > 0) {
                                     try {
                                         WebSockets.sendText(buffer.toString(), channel, null);
@@ -112,7 +135,6 @@ public class GenAiWebSocketHandler implements WebSocketApplicationHandler {
                                         logger.error("Error sending last message chunk", e);
                                     }
                                 }
-                                // Add full model response to history
                                 ChatMessage modelMsg = new ChatMessage("assistant", responseBuilder.toString());
                                 historyRepository.addMessage(sessionId, modelMsg);
                             }
@@ -132,3 +154,4 @@ public class GenAiWebSocketHandler implements WebSocketApplicationHandler {
         channel.resumeReceives();
     }
 }
+
