@@ -1,33 +1,23 @@
 package com.networknt.genai.antigravity;
 
-import com.networknt.client.Http2Client;
 import com.networknt.config.Config;
 import com.networknt.genai.ChatMessage;
 import com.networknt.genai.GenAiClient;
 import com.networknt.genai.RequestOptions;
 import com.networknt.genai.StreamCallback;
 import com.networknt.status.Status;
-import io.undertow.client.ClientConnection;
-import io.undertow.client.ClientRequest;
-import io.undertow.client.ClientResponse;
-import io.undertow.util.Headers;
-import io.undertow.util.Methods;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xnio.OptionMap;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class AntigravityClient implements GenAiClient {
     private static final Logger logger = LoggerFactory.getLogger(AntigravityClient.class);
     private static final AntigravityConfig config = AntigravityConfig.load();
-    private static final Http2Client client = Http2Client.getInstance();
 
     @Override
     public String chat(List<ChatMessage> messages) {
@@ -39,58 +29,142 @@ public class AntigravityClient implements GenAiClient {
         return chat(options.getModel() != null ? options.getModel() : config.getModel(), messages);
     }
     
+    private static final String CLIENT_METADATA = "{\"ideType\":\"ANTIGRAVITY\",\"platform\":\"PLATFORM_UNSPECIFIED\",\"pluginType\":\"GEMINI\"}";
+    private static final String USER_AGENT = "antigravity";
+    private static final String X_GOOG_API_CLIENT = "google-cloud-sdk vscode_cloudshelleditor/0.1";
+    private static final java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+
     public String chat(String model, List<ChatMessage> messages) {
-        // Implementation for synchronous chat
-        // Fetch OAuth token first
         String token = getAccessToken();
         if(token == null) {
             logger.error("Failed to get access token");
-            System.err.println("Failed to get access token");
             return null;
         }
 
-        String url = config.getUrl();
-        ClientConnection connection = null;
         try {
-            URI uri = new URI(url);
-            connection = client.connect(new URI(url), Http2Client.WORKER, Http2Client.SSL, Http2Client.BUFFER_POOL, OptionMap.EMPTY).get();
+            // 1. Fetch Project ID (needed for billing/quota)
+            String projectId = fetchProjectId(token);
+            
+            // 2. Construct Chat Request
+            String url = config.getUrl();
             
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("model", model);
-            requestBody.put("messages", messages);
+            if (projectId != null) {
+                requestBody.put("project", projectId);
+            }
+            // Add metadata to body as seen in loadCodeAssist, possibly needed for chat too? 
+            // openclaw sends it in loadCodeAssist body. 
+            // For chat, we stick to Gemini structure but adding 'project' field might be key.
             
-            ClientRequest request = new ClientRequest().setMethod(Methods.POST).setPath(uri.getPath());
-            request.getRequestHeaders().put(Headers.HOST, "localhost");
-            request.getRequestHeaders().put(Headers.CONTENT_TYPE, "application/json");
-            request.getRequestHeaders().put(Headers.AUTHORIZATION, "Bearer " + token);
-            request.getRequestHeaders().put(Headers.TRANSFER_ENCODING, "chunked");
+            List<Map<String, Object>> contents = new ArrayList<>();
+            for (ChatMessage msg : messages) {
+                Map<String, Object> contentMap = new HashMap<>();
+                String role = msg.getRole();
+                if ("assistant".equals(role)) role = "model";
+                contentMap.put("role", role);
 
-            final CountDownLatch latch = new CountDownLatch(1);
-            final AtomicReference<ClientResponse> reference = new AtomicReference<>();
+                List<Map<String, String>> parts = new ArrayList<>();
+                Map<String, String> part = new HashMap<>();
+                part.put("text", msg.getContent());
+                parts.add(part);
+                contentMap.put("parts", parts);
+
+                contents.add(contentMap);
+            }
+            requestBody.put("contents", contents);
             
             String json = Config.getInstance().getMapper().writeValueAsString(requestBody);
             
-            connection.sendRequest(request, client.createClientCallback(reference, latch, json));
+            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .header("Authorization", "Bearer " + token)
+                    .header("User-Agent", USER_AGENT)
+                    .header("X-Goog-Api-Client", X_GOOG_API_CLIENT)
+                    .header("Client-Metadata", CLIENT_METADATA)
+                    .POST(java.net.http.HttpRequest.BodyPublishers.ofString(json))
+                    .build();
             
-            if (latch.await(30, TimeUnit.SECONDS)) {
-                ClientResponse response = reference.get();
-                String responseBody = response.getAttachment(Http2Client.RESPONSE_BODY);
-                if (response.getResponseCode() >= 200 && response.getResponseCode() < 300) {
-                     return responseBody;
-                } else {
-                     logger.error("Antigravity API Error: " + response.getResponseCode() + " " + responseBody);
-                     return "Error: " + response.getResponseCode() + " " + responseBody;
-                }
+            java.net.http.HttpResponse<java.util.stream.Stream<String>> response = 
+                client.send(request, java.net.http.HttpResponse.BodyHandlers.ofLines());
+            
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                 StringBuilder fullText = new StringBuilder();
+                 response.body().forEach(line -> {
+                     String chunk = line.trim();
+                     if (chunk.startsWith("[")) chunk = chunk.substring(1);
+                     if (chunk.endsWith("]")) chunk = chunk.substring(0, chunk.length() - 1);
+                     if (chunk.endsWith(",")) chunk = chunk.substring(0, chunk.length() - 1);
+                     chunk = chunk.trim();
+                     
+                     if (!chunk.isEmpty()) {
+                         try {
+                             Map<String, Object> map = Config.getInstance().getMapper().readValue(chunk, Map.class);
+                             List<Map<String, Object>> candidates = (List<Map<String, Object>>) map.get("candidates");
+                             if (candidates != null && !candidates.isEmpty()) {
+                                 Map<String, Object> content = (Map<String, Object>) candidates.get(0).get("content");
+                                 if (content != null) {
+                                     List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
+                                     if (parts != null && !parts.isEmpty()) {
+                                         String text = (String) parts.get(0).get("text");
+                                         if (text != null) fullText.append(text);
+                                     }
+                                 }
+                             }
+                         } catch (Exception e) { }
+                     }
+                 });
+                 return fullText.toString();
             } else {
-                logger.error("Timeout connecting to Antigravity API");
-                System.err.println("Timeout connecting to Antigravity API");
+                 String errorBody = response.body().collect(java.util.stream.Collectors.joining("\n"));
+                 logger.error("Antigravity API Error: " + response.statusCode() + " " + errorBody);
+                 return "Error: " + response.statusCode() + " " + errorBody;
             }
 
         } catch (Exception e) {
             logger.error("Exception in Antigravity chat", e);
             e.printStackTrace();
-        } finally {
-            if(connection != null) try { connection.close(); } catch(Exception e) { e.printStackTrace(); }
+        }
+        return null;
+    }
+
+    private String fetchProjectId(String token) {
+        try {
+            String loadUrl = "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist";
+            Map<String, Object> metadata = new HashMap<>();
+            metadata.put("ideType", "ANTIGRAVITY");
+            metadata.put("platform", "PLATFORM_UNSPECIFIED");
+            metadata.put("pluginType", "GEMINI");
+            
+            Map<String, Object> body = new HashMap<>();
+            body.put("metadata", metadata);
+            
+            String json = Config.getInstance().getMapper().writeValueAsString(body);
+            
+             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                    .uri(URI.create(loadUrl))
+                    .header("Content-Type", "application/json")
+                    .header("Authorization", "Bearer " + token)
+                    .header("User-Agent", USER_AGENT)
+                    .header("X-Goog-Api-Client", X_GOOG_API_CLIENT)
+                    .header("Client-Metadata", CLIENT_METADATA)
+                    .POST(java.net.http.HttpRequest.BodyPublishers.ofString(json))
+                    .build();
+
+            java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+            
+            if (response.statusCode() == 200) {
+                Map<String, Object> respMap = Config.getInstance().getMapper().readValue(response.body(), Map.class);
+                Object projObj = respMap.get("cloudaicompanionProject");
+                if (projObj instanceof Map) {
+                    return (String) ((Map) projObj).get("id");
+                } else if (projObj instanceof String) {
+                    return (String) projObj;
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to fetch project ID", e);
         }
         return null;
     }
@@ -102,9 +176,9 @@ public class AntigravityClient implements GenAiClient {
 
     @Override
     public void chatStream(List<ChatMessage> messages, RequestOptions options, StreamCallback callback) {
-         // Streaming implementation similar to other clients but with OAuth header
-         // For now, minimal stub to verify compilation
-         callback.onEvent("Antigravity Streaming Response (Stub)");
+         // Streaming implementation similar to chat() but processing chunks via callback
+         // Use common logic
+         callback.onEvent("Antigravity Streaming Response (Stub)"); // TODO: Implement real streaming using same logic
          callback.onComplete();
     }
     

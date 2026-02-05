@@ -1,20 +1,13 @@
 package com.networknt.genai.antigravity;
 
-import com.networknt.client.Http2Client;
 import com.networknt.config.Config;
 import io.undertow.Undertow;
-import io.undertow.client.ClientConnection;
-import io.undertow.client.ClientRequest;
-import io.undertow.client.ClientResponse;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.util.Headers;
-import io.undertow.util.Methods;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xnio.OptionMap;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -32,7 +25,6 @@ import java.util.concurrent.atomic.AtomicReference;
 public class AntigravityAuth {
     private static final Logger logger = LoggerFactory.getLogger(AntigravityAuth.class);
     private static final AntigravityConfig config = AntigravityConfig.load();
-    private static final Http2Client client = Http2Client.getInstance();
 
     private static String accessToken;
     private static String refreshToken;
@@ -47,6 +39,11 @@ public class AntigravityAuth {
             // Ideally we should implement refresh flow here.
         }
         return authorize();
+    }
+
+    public static void setAccessToken(String token) {
+        accessToken = token;
+        tokenExpiry = System.currentTimeMillis() + 3600000; // 1 hour
     }
 
     private String authorize() {
@@ -114,54 +111,46 @@ public class AntigravityAuth {
     }
     
     private String exchangeCodeForToken(String code, String verifier, String redirectUri) throws Exception {
-        URI tokenUri = new URI(config.getTokenUrl());
-        ClientConnection connection = client.connect(tokenUri, Http2Client.WORKER, Http2Client.SSL, Http2Client.BUFFER_POOL, OptionMap.EMPTY).get();
+        java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+        Map<String, String> params = new HashMap<>();
+        params.put("client_id", config.getClientId());
+        params.put("client_secret", config.getClientSecret());
+        params.put("code", code);
+        params.put("grant_type", "authorization_code");
+        params.put("redirect_uri", redirectUri);
+        params.put("code_verifier", verifier);
+        
+        String requestBody = buildFormData(params);
+        
+        java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                .uri(URI.create(config.getTokenUrl()))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(java.net.http.HttpRequest.BodyPublishers.ofString(requestBody))
+                .build();
         
         try {
-            Map<String, String> params = new HashMap<>();
-            params.put("client_id", config.getClientId());
-            params.put("client_secret", config.getClientSecret());
-            params.put("code", code);
-            params.put("grant_type", "authorization_code");
-            params.put("redirect_uri", redirectUri);
-            params.put("code_verifier", verifier);
+            java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
             
-            String requestBody = buildFormData(params);
-            
-            ClientRequest request = new ClientRequest().setMethod(Methods.POST).setPath(tokenUri.getPath());
-            request.getRequestHeaders().put(Headers.HOST, "oauth2.googleapis.com");
-            request.getRequestHeaders().put(Headers.CONTENT_TYPE, "application/x-www-form-urlencoded");
-            request.getRequestHeaders().put(Headers.TRANSFER_ENCODING, "chunked");
-
-            CountDownLatch latch = new CountDownLatch(1);
-            AtomicReference<ClientResponse> reference = new AtomicReference<>();
-            
-            connection.sendRequest(request, client.createClientCallback(reference, latch, requestBody));
-            
-            if (latch.await(10, TimeUnit.SECONDS)) {
-                ClientResponse response = reference.get();
-                if (response.getResponseCode() == 200) {
-                    String responseBody = response.getAttachment(Http2Client.RESPONSE_BODY);
-                    Map<String, Object> tokenData = Config.getInstance().getMapper().readValue(responseBody, Map.class);
-                    
-                    accessToken = (String) tokenData.get("access_token");
-                    refreshToken = (String) tokenData.get("refresh_token");
-                    Integer expiresIn = (Integer) tokenData.get("expires_in");
-                    if(expiresIn != null) {
-                        tokenExpiry = System.currentTimeMillis() + (expiresIn * 1000) - (60 * 1000); // Buffer of 1 minute
-                    }
-                    return accessToken;
-                } else {
-                     String responseBody = response.getAttachment(Http2Client.RESPONSE_BODY);
-                     String errorMsg = "Failed to exchange token. Status: " + response.getResponseCode() + " Body: " + responseBody;
-                     System.err.println(errorMsg);
-                     logger.error(errorMsg);
+            if (response.statusCode() == 200) {
+                String responseBody = response.body();
+                Map<String, Object> tokenData = Config.getInstance().getMapper().readValue(responseBody, Map.class);
+                
+                accessToken = (String) tokenData.get("access_token");
+                refreshToken = (String) tokenData.get("refresh_token");
+                Integer expiresIn = (Integer) tokenData.get("expires_in");
+                if(expiresIn != null) {
+                    tokenExpiry = System.currentTimeMillis() + (expiresIn * 1000) - (60 * 1000); // Buffer of 1 minute
                 }
+                return accessToken;
             } else {
-                System.err.println("Timeout waiting for token exchange response.");
+                 String responseBody = response.body();
+                 String errorMsg = "Failed to exchange token. Status: " + response.statusCode() + " Body: " + responseBody;
+                 System.err.println(errorMsg);
+                 logger.error(errorMsg);
             }
-        } finally {
-            connection.close();
+        } catch (Exception e) {
+            logger.error("Exception during token exchange", e);
+            e.printStackTrace();
         }
         return null;
     }

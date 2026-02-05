@@ -1,11 +1,11 @@
 # Antigravity GenAI configuration
 # Antigravity API URL
-url: ${antigravity.url:https://api.google.antigravity.com/v1/chat/completions}
+url: ${antigravity.url:https://cloudcode-pa.googleapis.com/v1internal:streamGenerateContent}
 # Model ID
 model: ${antigravity.model:google-antigravity/claude-opus-4-5-thinking}
 # OAuth Client ID
-clientId: ${antigravity.clientId:your_client_id}
+clientId: ${antigravity.clientId:}
 # OAuth Client Secret
-clientSecret: ${antigravity.clientSecret:your_client_secret}
+clientSecret: ${antigravity.clientSecret:}
 # OAuth Token URL
 tokenUrl: ${antigravity.tokenUrl:https://oauth2.googleapis.com/token}

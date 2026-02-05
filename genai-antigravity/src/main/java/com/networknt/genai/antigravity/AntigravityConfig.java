@@ -20,8 +20,8 @@ public class AntigravityConfig {
     private static final String AUTH_URL = "authUrl";
     private static final String REDIRECT_URI = "redirectUri";
 
-    @StringField(configFieldName = URL, externalizedKeyName = URL, description = "Antigravity API URL", defaultValue = "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist")
-    private String url = "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist";
+    @StringField(configFieldName = URL, externalizedKeyName = URL, description = "Antigravity API URL", defaultValue = "https://cloudcode-pa.googleapis.com/v1internal:streamGenerateContent")
+    private String url = "https://cloudcode-pa.googleapis.com/v1internal:streamGenerateContent";
     
     @StringField(configFieldName = MODEL, externalizedKeyName = MODEL, description = "Model ID", defaultValue = "google-antigravity/claude-opus-4-5-thinking")
     private String model = "google-antigravity/claude-opus-4-5-thinking";
