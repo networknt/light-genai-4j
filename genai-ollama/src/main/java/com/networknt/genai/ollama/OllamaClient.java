@@ -3,6 +3,7 @@ package com.networknt.genai.ollama;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.client.Http2Client;
+import com.networknt.client.simplepool.SimpleConnectionHolder;
 import com.networknt.config.Config;
 import io.undertow.client.ClientConnection;
 import io.undertow.client.ClientRequest;
@@ -43,6 +44,7 @@ public class OllamaClient implements GenAiClient {
 
     public String chat(String model, java.util.List<ChatMessage> messages) {
         String result = null;
+        SimpleConnectionHolder.ConnectionToken connectionToken = null;
         try {
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("model", model);
@@ -51,8 +53,9 @@ public class OllamaClient implements GenAiClient {
 
             String jsonBody = mapper.writeValueAsString(requestBody);
             URI uri = new URI(config.getOllamaUrl());
-            ClientConnection connection = client
-                    .connect(uri, Http2Client.WORKER, Http2Client.SSL, Http2Client.BUFFER_POOL, OptionMap.EMPTY).get();
+            connectionToken = client.borrow(uri, Http2Client.WORKER, Http2Client.SSL, Http2Client.BUFFER_POOL,
+                    OptionMap.EMPTY);
+            ClientConnection connection = (ClientConnection) connectionToken.getRawConnection();
             try {
                 ClientRequest request = new ClientRequest().setMethod(Methods.POST).setPath("/api/chat");
                 request.getRequestHeaders().put(Headers.HOST, uri.getHost());
@@ -76,10 +79,13 @@ public class OllamaClient implements GenAiClient {
                     logger.error("Ollama API error: {} {}", statusCode, body);
                 }
             } finally {
-                client.returnConnection(connection);
+                // Inner finally not needed, outer finally handles restore
             }
         } catch (Exception e) {
             logger.error("Exception invoking Ollama API", e);
+        } finally {
+            if (connectionToken != null)
+                client.restore(connectionToken);
         }
         return result;
     }

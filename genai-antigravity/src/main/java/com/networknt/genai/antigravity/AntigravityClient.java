@@ -75,10 +75,12 @@ public class AntigravityClient implements GenAiClient {
             requestBody.put("contents", contents);
             
             String json = Config.getInstance().getMapper().writeValueAsString(requestBody);
-            
+            logger.info("json = {}", json);
+            System.out.println(json);
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .header("Content-Type", "application/json")
+                    .header("Accept", "text/event-stream")
                     .header("Authorization", "Bearer " + token)
                     .header("User-Agent", USER_AGENT)
                     .header("X-Goog-Api-Client", X_GOOG_API_CLIENT)

@@ -3,6 +3,7 @@ package com.networknt.genai.gemini;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.client.Http2Client;
+import com.networknt.client.simplepool.SimpleConnectionHolder;
 import com.networknt.config.Config;
 import com.networknt.genai.GenAiClient;
 import io.undertow.client.ClientConnection;
@@ -43,6 +44,7 @@ public class GeminiClient implements GenAiClient {
 
     public String chat(String model, java.util.List<com.networknt.genai.ChatMessage> messages) {
         String result = null;
+        SimpleConnectionHolder.ConnectionToken connectionToken = null;
         try {
             String endpoint = String.format(config.getUrl(), model) + "?key=" + config.getApiKey();
 
@@ -71,8 +73,9 @@ public class GeminiClient implements GenAiClient {
 
             String jsonBody = mapper.writeValueAsString(requestBody);
             URI uri = new URI(endpoint);
-            ClientConnection connection = client
-                    .connect(uri, Http2Client.WORKER, Http2Client.SSL, Http2Client.BUFFER_POOL, OptionMap.EMPTY).get();
+            connectionToken = client.borrow(uri, Http2Client.WORKER, Http2Client.SSL, Http2Client.BUFFER_POOL,
+                    OptionMap.EMPTY);
+            ClientConnection connection = (ClientConnection) connectionToken.getRawConnection();
             try {
                 ClientRequest request = new ClientRequest().setMethod(Methods.POST)
                         .setPath(uri.getPath() + "?" + uri.getQuery());
@@ -105,10 +108,13 @@ public class GeminiClient implements GenAiClient {
                     logger.error("Gemini API error: {} {}", statusCode, body);
                 }
             } finally {
-                client.returnConnection(connection);
+                // Inner finally not needed, outer finally handles restore
             }
         } catch (Exception e) {
             logger.error("Exception invoking Gemini API", e);
+        } finally {
+            if (connectionToken != null)
+                client.restore(connectionToken);
         }
         return result;
     }
