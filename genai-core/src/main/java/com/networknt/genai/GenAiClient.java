@@ -13,6 +13,8 @@ public interface GenAiClient {
      */
     String chat(List<ChatMessage> messages);
 
+    String chat(List<ChatMessage> messages, RequestOptions options);
+
     /**
      * Generates a text completion stream for the given list of chat messages.
      * 
@@ -20,4 +22,6 @@ public interface GenAiClient {
      * @param callback The callback to receive chunks, completion, and errors.
      */
     void chatStream(List<ChatMessage> messages, StreamCallback callback);
+
+    void chatStream(List<ChatMessage> messages, RequestOptions options, StreamCallback callback);
 }

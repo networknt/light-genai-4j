@@ -3,6 +3,7 @@ package com.networknt.genai.gemini;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.client.Http2Client;
+import com.networknt.client.simplepool.SimpleConnectionHolder;
 import com.networknt.config.Config;
 import com.networknt.genai.GenAiClient;
 import io.undertow.client.ClientConnection;
@@ -23,6 +24,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.networknt.genai.RequestOptions;
+
 public class GeminiClient implements GenAiClient {
     private static final Logger logger = LoggerFactory.getLogger(GeminiClient.class);
     private static final GeminiConfig config = GeminiConfig.load();
@@ -31,11 +34,17 @@ public class GeminiClient implements GenAiClient {
 
     @Override
     public String chat(java.util.List<com.networknt.genai.ChatMessage> messages) {
-        return chat(config.getModel(), messages);
+        return chat(messages, new RequestOptions(config.getModel()));
+    }
+
+    @Override
+    public String chat(java.util.List<com.networknt.genai.ChatMessage> messages, RequestOptions options) {
+        return chat(options.getModel() != null ? options.getModel() : config.getModel(), messages);
     }
 
     public String chat(String model, java.util.List<com.networknt.genai.ChatMessage> messages) {
         String result = null;
+        SimpleConnectionHolder.ConnectionToken connectionToken = null;
         try {
             String endpoint = String.format(config.getUrl(), model) + "?key=" + config.getApiKey();
 
@@ -64,8 +73,9 @@ public class GeminiClient implements GenAiClient {
 
             String jsonBody = mapper.writeValueAsString(requestBody);
             URI uri = new URI(endpoint);
-            ClientConnection connection = client
-                    .connect(uri, Http2Client.WORKER, Http2Client.SSL, Http2Client.BUFFER_POOL, OptionMap.EMPTY).get();
+            connectionToken = client.borrow(uri, Http2Client.WORKER, Http2Client.SSL, Http2Client.BUFFER_POOL,
+                    OptionMap.EMPTY);
+            ClientConnection connection = (ClientConnection) connectionToken.getRawConnection();
             try {
                 ClientRequest request = new ClientRequest().setMethod(Methods.POST)
                         .setPath(uri.getPath() + "?" + uri.getQuery());
@@ -98,10 +108,13 @@ public class GeminiClient implements GenAiClient {
                     logger.error("Gemini API error: {} {}", statusCode, body);
                 }
             } finally {
-                client.returnConnection(connection);
+                // Inner finally not needed, outer finally handles restore
             }
         } catch (Exception e) {
             logger.error("Exception invoking Gemini API", e);
+        } finally {
+            if (connectionToken != null)
+                client.restore(connectionToken);
         }
         return result;
     }
@@ -109,10 +122,19 @@ public class GeminiClient implements GenAiClient {
     @Override
     public void chatStream(java.util.List<com.networknt.genai.ChatMessage> messages,
             com.networknt.genai.StreamCallback callback) {
+        chatStream(messages, new RequestOptions(config.getModel()), callback);
+    }
+
+    @Override
+    public void chatStream(java.util.List<com.networknt.genai.ChatMessage> messages,
+            RequestOptions options,
+            com.networknt.genai.StreamCallback callback) {
+        SimpleConnectionHolder.ConnectionToken connectionToken = null;
         try {
             // URL format for streaming:
             // https://generativelanguage.googleapis.com/v1beta/models/{model}:streamGenerateContent
-            String endpoint = String.format(config.getUrl(), config.getModel()).replace(":generateContent",
+            String model = options.getModel() != null ? options.getModel() : config.getModel();
+            String endpoint = String.format(config.getUrl(), model).replace(":generateContent",
                     ":streamGenerateContent") + "?key=" + config.getApiKey();
 
             // Map ChatMessage list to Gemini structure
@@ -140,180 +162,194 @@ public class GeminiClient implements GenAiClient {
 
             String jsonBody = mapper.writeValueAsString(requestBody);
             URI uri = new URI(endpoint);
-            org.xnio.IoFuture<ClientConnection> future = client.connect(uri, Http2Client.WORKER, Http2Client.SSL,
+            connectionToken = client.borrow(uri, Http2Client.WORKER, Http2Client.SSL,
                     Http2Client.BUFFER_POOL, OptionMap.EMPTY);
+            ClientConnection connection = (ClientConnection) connectionToken.getRawConnection();
 
-            future.addNotifier(new org.xnio.IoFuture.Notifier<ClientConnection, Object>() {
+            final SimpleConnectionHolder.ConnectionToken finalToken = connectionToken;
+            com.networknt.genai.StreamCallback wrappedCallback = new com.networknt.genai.StreamCallback() {
                 @Override
-                public void notify(org.xnio.IoFuture<? extends ClientConnection> ioFuture, Object attachment) {
-                    if (ioFuture.getStatus() == org.xnio.IoFuture.Status.DONE) {
-                        try {
-                            ClientConnection connection = ioFuture.get();
-                            ClientRequest request = new ClientRequest().setMethod(Methods.POST)
-                                    .setPath(uri.getPath() + "?" + uri.getQuery());
-                            request.getRequestHeaders().put(Headers.HOST, uri.getHost());
-                            request.getRequestHeaders().put(Headers.CONTENT_TYPE, "application/json");
-                            request.getRequestHeaders().put(Headers.TRANSFER_ENCODING, "chunked");
+                public void onEvent(String content) {
+                    callback.onEvent(content);
+                }
 
-                            connection.sendRequest(request,
+                @Override
+                public void onComplete() {
+                    try {
+                        callback.onComplete();
+                    } finally {
+                        client.restore(finalToken);
+                    }
+                }
+
+                @Override
+                public void onError(Throwable t) {
+                    try {
+                        callback.onError(t);
+                    } finally {
+                        client.restore(finalToken);
+                    }
+                }
+            };
+
+            ClientRequest request = new ClientRequest().setMethod(Methods.POST)
+                    .setPath(uri.getPath() + "?" + uri.getQuery());
+            request.getRequestHeaders().put(Headers.HOST, uri.getHost());
+            request.getRequestHeaders().put(Headers.CONTENT_TYPE, "application/json");
+            request.getRequestHeaders().put(Headers.TRANSFER_ENCODING, "chunked");
+
+            connection.sendRequest(request,
+                    new io.undertow.client.ClientCallback<io.undertow.client.ClientExchange>() {
+                        @Override
+                        public void completed(io.undertow.client.ClientExchange exchange) {
+                            exchange.setResponseListener(
                                     new io.undertow.client.ClientCallback<io.undertow.client.ClientExchange>() {
                                         @Override
-                                        public void completed(io.undertow.client.ClientExchange exchange) {
-                                            exchange.setResponseListener(
-                                                    new io.undertow.client.ClientCallback<io.undertow.client.ClientExchange>() {
+                                        public void completed(
+                                                io.undertow.client.ClientExchange result) {
+                                            result.getResponseChannel().getReadSetter()
+                                                    .set(new org.xnio.ChannelListener<org.xnio.channels.StreamSourceChannel>() {
                                                         @Override
-                                                        public void completed(
-                                                                io.undertow.client.ClientExchange result) {
-                                                            result.getResponseChannel().getReadSetter()
-                                                                    .set(new org.xnio.ChannelListener<org.xnio.channels.StreamSourceChannel>() {
-                                                                        @Override
-                                                                        public void handleEvent(
-                                                                                org.xnio.channels.StreamSourceChannel channel) {
-                                                                            try {
-                                                                                java.nio.ByteBuffer buffer = java.nio.ByteBuffer
-                                                                                        .allocate(1024);
-                                                                                int read = 0;
-                                                                                while ((read = channel
-                                                                                        .read(buffer)) > 0) {
-                                                                                    buffer.flip();
-                                                                                    String chunk = new String(
-                                                                                            buffer.array(), 0, read,
-                                                                                            java.nio.charset.StandardCharsets.UTF_8);
-                                                                                    // Gemini returns a JSON array of
-                                                                                    // objects, passed as chunks:
-                                                                                    // [{...}, \r\n {...}]
+                                                        public void handleEvent(
+                                                                org.xnio.channels.StreamSourceChannel channel) {
+                                                            try {
+                                                                java.nio.ByteBuffer buffer = java.nio.ByteBuffer
+                                                                        .allocate(1024);
+                                                                int read = 0;
+                                                                while ((read = channel
+                                                                        .read(buffer)) > 0) {
+                                                                    buffer.flip();
+                                                                    String chunk = new String(
+                                                                            buffer.array(), 0, read,
+                                                                            java.nio.charset.StandardCharsets.UTF_8);
+                                                                    // Gemini returns a JSON array of
+                                                                    // objects, passed as chunks:
+                                                                    // [{...}, \r\n {...}]
 
-                                                                                    // Simple heuristic: Clean up array
-                                                                                    // brackets if present at
-                                                                                    // start/end of stream
-                                                                                    String cleaned = chunk
-                                                                                            .replace("[", "")
-                                                                                            .replace("]", "")
-                                                                                            .replace(",", "").trim();
-                                                                                    if (!cleaned.isEmpty()) {
-                                                                                        try {
-                                                                                            // It might be multiple JSON
-                                                                                            // objects in one chunk or
-                                                                                            // partials
-                                                                                            // For robustness, ideally
-                                                                                            // we need standard JSON
-                                                                                            // parser but for now assume
-                                                                                            // valid objects
-                                                                                            // If multiple objects come
-                                                                                            // without comma, this might
-                                                                                            // fail or need split.
-                                                                                            // Assuming Gemini sends
-                                                                                            // clean chunks or we need
-                                                                                            // splitting by '}\s*{'
-                                                                                            // For now, let's just try
-                                                                                            // to parse what we have.
+                                                                    // Simple heuristic: Clean up array
+                                                                    // brackets if present at
+                                                                    // start/end of stream
+                                                                    String cleaned = chunk
+                                                                            .replace("[", "")
+                                                                            .replace("]", "")
+                                                                            .replace(",", "").trim();
+                                                                    if (!cleaned.isEmpty()) {
+                                                                        try {
+                                                                            // It might be multiple JSON
+                                                                            // objects in one chunk or
+                                                                            // partials
+                                                                            // For robustness, ideally
+                                                                            // we need standard JSON
+                                                                            // parser but for now assume
+                                                                            // valid objects
+                                                                            // If multiple objects come
+                                                                            // without comma, this might
+                                                                            // fail or need split.
+                                                                            // Assuming Gemini sends
+                                                                            // clean chunks or we need
+                                                                            // splitting by '}\s*{'
+                                                                            // For now, let's just try
+                                                                            // to parse what we have.
 
-                                                                                            Map<String, Object> responseMap = mapper
-                                                                                                    .readValue(cleaned,
-                                                                                                            Map.class);
-                                                                                            List<Map<String, Object>> candidates = (List<Map<String, Object>>) responseMap
-                                                                                                    .get("candidates");
-                                                                                            if (candidates != null
-                                                                                                    && !candidates
-                                                                                                            .isEmpty()) {
-                                                                                                Map<String, Object> content = (Map<String, Object>) candidates
-                                                                                                        .get(0)
-                                                                                                        .get("content");
-                                                                                                if (content != null) {
-                                                                                                    List<Map<String, Object>> resParts = (List<Map<String, Object>>) content
-                                                                                                            .get("parts");
-                                                                                                    if (resParts != null
-                                                                                                            && !resParts
-                                                                                                                    .isEmpty()) {
-                                                                                                        String text = (String) resParts
-                                                                                                                .get(0)
-                                                                                                                .get("text");
-                                                                                                        if (text != null
-                                                                                                                && !text.isEmpty())
-                                                                                                            callback.onEvent(
-                                                                                                                    text);
-                                                                                                    }
-                                                                                                }
-                                                                                            }
-                                                                                        } catch (Exception e) {
-                                                                                            // Ignore partial JSONs
-                                                                                        }
+                                                                            Map<String, Object> responseMap = mapper
+                                                                                    .readValue(cleaned,
+                                                                                            Map.class);
+                                                                            List<Map<String, Object>> candidates = (List<Map<String, Object>>) responseMap
+                                                                                    .get("candidates");
+                                                                            if (candidates != null
+                                                                                    && !candidates
+                                                                                            .isEmpty()) {
+                                                                                Map<String, Object> content = (Map<String, Object>) candidates
+                                                                                        .get(0)
+                                                                                        .get("content");
+                                                                                if (content != null) {
+                                                                                    List<Map<String, Object>> resParts = (List<Map<String, Object>>) content
+                                                                                            .get("parts");
+                                                                                    if (resParts != null
+                                                                                            && !resParts
+                                                                                                    .isEmpty()) {
+                                                                                        String text = (String) resParts
+                                                                                                .get(0)
+                                                                                                .get("text");
+                                                                                        if (text != null
+                                                                                                && !text.isEmpty())
+                                                                                            wrappedCallback.onEvent(
+                                                                                                    text);
                                                                                     }
-
-                                                                                    buffer.clear();
                                                                                 }
-                                                                                if (read == -1) {
-                                                                                    callback.onComplete();
-                                                                                }
-                                                                            } catch (java.io.IOException e) {
-                                                                                callback.onError(e);
                                                                             }
+                                                                        } catch (Exception e) {
+                                                                            // Ignore partial JSONs
                                                                         }
-                                                                    });
-                                                            result.getResponseChannel().resumeReads();
-                                                        }
+                                                                    }
 
-                                                        @Override
-                                                        public void failed(java.io.IOException e) {
-                                                            callback.onError(e);
+                                                                    buffer.clear();
+                                                                }
+                                                                if (read == -1) {
+                                                                    wrappedCallback.onComplete();
+                                                                }
+                                                            } catch (java.io.IOException e) {
+                                                                wrappedCallback.onError(e);
+                                                            }
                                                         }
                                                     });
-
-                                            // Write body async
-                                            try {
-                                                org.xnio.channels.StreamSinkChannel requestChannel = exchange
-                                                        .getRequestChannel();
-                                                java.nio.ByteBuffer buffer = java.nio.ByteBuffer.wrap(
-                                                        jsonBody.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-
-                                                int written = 0;
-                                                while (buffer.hasRemaining()) {
-                                                    written = requestChannel.write(buffer);
-                                                    if (written == 0) {
-                                                        requestChannel.getWriteSetter().set(channel -> {
-                                                            try {
-                                                                while (buffer.hasRemaining()) {
-                                                                    int w = channel.write(buffer);
-                                                                    if (w == 0)
-                                                                        return;
-                                                                }
-                                                                channel.shutdownWrites();
-                                                                channel.flush();
-                                                            } catch (java.io.IOException e) {
-                                                                logger.error("Error writing body async", e);
-                                                                callback.onError(e);
-                                                            }
-                                                        });
-                                                        requestChannel.resumeWrites();
-                                                        return;
-                                                    }
-                                                }
-                                                requestChannel.shutdownWrites();
-                                                requestChannel.flush();
-                                            } catch (Exception e) {
-                                                logger.error("Error sending request body", e);
-                                                callback.onError(e);
-                                            }
+                                            result.getResponseChannel().resumeReads();
                                         }
 
                                         @Override
                                         public void failed(java.io.IOException e) {
-                                            callback.onError(e);
+                                            wrappedCallback.onError(e);
                                         }
                                     });
-                        } catch (Exception e) {
-                            logger.error("Failed to get connection", e);
-                            callback.onError(e);
+
+                            // Write body async
+                            try {
+                                org.xnio.channels.StreamSinkChannel requestChannel = exchange
+                                        .getRequestChannel();
+                                java.nio.ByteBuffer buffer = java.nio.ByteBuffer.wrap(
+                                        jsonBody.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+                                int written = 0;
+                                while (buffer.hasRemaining()) {
+                                    written = requestChannel.write(buffer);
+                                    if (written == 0) {
+                                        requestChannel.getWriteSetter().set(channel -> {
+                                            try {
+                                                while (buffer.hasRemaining()) {
+                                                    int w = channel.write(buffer);
+                                                    if (w == 0)
+                                                        return;
+                                                }
+                                                channel.shutdownWrites();
+                                                channel.flush();
+                                            } catch (java.io.IOException e) {
+                                                logger.error("Error writing body async", e);
+                                                wrappedCallback.onError(e);
+                                            }
+                                        });
+                                        requestChannel.resumeWrites();
+                                        return;
+                                    }
+                                }
+                                requestChannel.shutdownWrites();
+                                requestChannel.flush();
+                            } catch (Exception e) {
+                                logger.error("Error sending request body", e);
+                                wrappedCallback.onError(e);
+                            }
                         }
-                    } else {
-                        logger.error("Connection failed", ioFuture.getException());
-                        callback.onError(ioFuture.getException());
-                    }
-                }
-            }, null);
+
+                        @Override
+                        public void failed(java.io.IOException e) {
+                            wrappedCallback.onError(e);
+                        }
+                    });
 
         } catch (Exception e) {
+            logger.error("Exception invoking Gemini API", e);
             callback.onError(e);
+            if (connectionToken != null)
+                client.restore(connectionToken);
         }
     }
 }

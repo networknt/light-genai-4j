@@ -3,6 +3,7 @@ package com.networknt.genai.ollama;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.client.Http2Client;
+import com.networknt.client.simplepool.SimpleConnectionHolder;
 import com.networknt.config.Config;
 import io.undertow.client.ClientConnection;
 import io.undertow.client.ClientRequest;
@@ -23,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import com.networknt.genai.GenAiClient;
 import com.networknt.genai.ChatMessage;
+import com.networknt.genai.RequestOptions;
 
 public class OllamaClient implements GenAiClient {
     private static final Logger logger = LoggerFactory.getLogger(OllamaClient.class);
@@ -32,11 +34,17 @@ public class OllamaClient implements GenAiClient {
 
     @Override
     public String chat(java.util.List<ChatMessage> messages) {
-        return chat(config.getModel(), messages);
+        return chat(messages, new RequestOptions(config.getModel()));
+    }
+
+    @Override
+    public String chat(java.util.List<ChatMessage> messages, RequestOptions options) {
+        return chat(options.getModel() != null ? options.getModel() : config.getModel(), messages);
     }
 
     public String chat(String model, java.util.List<ChatMessage> messages) {
         String result = null;
+        SimpleConnectionHolder.ConnectionToken connectionToken = null;
         try {
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("model", model);
@@ -45,8 +53,9 @@ public class OllamaClient implements GenAiClient {
 
             String jsonBody = mapper.writeValueAsString(requestBody);
             URI uri = new URI(config.getOllamaUrl());
-            ClientConnection connection = client
-                    .connect(uri, Http2Client.WORKER, Http2Client.SSL, Http2Client.BUFFER_POOL, OptionMap.EMPTY).get();
+            connectionToken = client.borrow(uri, Http2Client.WORKER, Http2Client.SSL, Http2Client.BUFFER_POOL,
+                    OptionMap.EMPTY);
+            ClientConnection connection = (ClientConnection) connectionToken.getRawConnection();
             try {
                 ClientRequest request = new ClientRequest().setMethod(Methods.POST).setPath("/api/chat");
                 request.getRequestHeaders().put(Headers.HOST, uri.getHost());
@@ -70,20 +79,32 @@ public class OllamaClient implements GenAiClient {
                     logger.error("Ollama API error: {} {}", statusCode, body);
                 }
             } finally {
-                client.returnConnection(connection);
+                // Inner finally not needed, outer finally handles restore
             }
         } catch (Exception e) {
             logger.error("Exception invoking Ollama API", e);
+        } finally {
+            if (connectionToken != null)
+                client.restore(connectionToken);
         }
         return result;
     }
 
     @Override
     public void chatStream(java.util.List<ChatMessage> messages, com.networknt.genai.StreamCallback callback) {
+        chatStream(messages, new RequestOptions(config.getModel()), callback);
+    }
+
+    @Override
+    public void chatStream(java.util.List<ChatMessage> messages, RequestOptions options,
+            com.networknt.genai.StreamCallback callback) {
+        SimpleConnectionHolder.ConnectionToken connectionToken = null;
         try {
             logger.debug("chatStream called with messages: {}", messages.size());
+            final String model = options.getModel() != null ? options.getModel() : config.getModel();
+
             Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", config.getModel());
+            requestBody.put("model", model);
             requestBody.put("messages", messages);
             requestBody.put("stream", true);
 
@@ -91,156 +112,169 @@ public class OllamaClient implements GenAiClient {
             URI uri = new URI(config.getOllamaUrl());
             logger.debug("Connecting to Ollama at: {}", uri);
 
-            org.xnio.IoFuture<ClientConnection> future = client.connect(uri, Http2Client.WORKER, Http2Client.SSL,
+            connectionToken = client.borrow(uri, Http2Client.WORKER, Http2Client.SSL,
                     Http2Client.BUFFER_POOL, OptionMap.EMPTY);
+            ClientConnection connection = (ClientConnection) connectionToken.getRawConnection();
 
-            future.addNotifier(new org.xnio.IoFuture.Notifier<ClientConnection, Object>() {
+            final SimpleConnectionHolder.ConnectionToken finalToken = connectionToken;
+            com.networknt.genai.StreamCallback wrappedCallback = new com.networknt.genai.StreamCallback() {
                 @Override
-                public void notify(org.xnio.IoFuture<? extends ClientConnection> ioFuture, Object attachment) {
-                    if (ioFuture.getStatus() == org.xnio.IoFuture.Status.DONE) {
-                        try {
-                            ClientConnection connection = ioFuture.get();
-                            logger.debug("Connection established to Ollama");
-                            ClientRequest request = new ClientRequest().setMethod(Methods.POST).setPath("/api/chat");
-                            request.getRequestHeaders().put(Headers.HOST, uri.getHost());
-                            request.getRequestHeaders().put(Headers.CONTENT_TYPE, "application/json");
-                            request.getRequestHeaders().put(Headers.TRANSFER_ENCODING, "chunked");
+                public void onEvent(String content) {
+                    callback.onEvent(content);
+                }
 
-                            connection.sendRequest(request, new io.undertow.client.ClientCallback<ClientExchange>() {
+                @Override
+                public void onComplete() {
+                    try {
+                        callback.onComplete();
+                    } finally {
+                        client.restore(finalToken);
+                    }
+                }
+
+                @Override
+                public void onError(Throwable t) {
+                    try {
+                        callback.onError(t);
+                    } finally {
+                        client.restore(finalToken);
+                    }
+                }
+            };
+
+            logger.debug("Connection established to Ollama");
+            ClientRequest request = new ClientRequest().setMethod(Methods.POST).setPath("/api/chat");
+            request.getRequestHeaders().put(Headers.HOST, uri.getHost());
+            request.getRequestHeaders().put(Headers.CONTENT_TYPE, "application/json");
+            request.getRequestHeaders().put(Headers.TRANSFER_ENCODING, "chunked");
+
+            connection.sendRequest(request, new io.undertow.client.ClientCallback<ClientExchange>() {
+                @Override
+                public void completed(io.undertow.client.ClientExchange exchange) {
+                    logger.debug("Request sent to Ollama, waiting for response");
+                    exchange.setResponseListener(
+                            new io.undertow.client.ClientCallback<io.undertow.client.ClientExchange>() {
                                 @Override
-                                public void completed(io.undertow.client.ClientExchange exchange) {
-                                    logger.debug("Request sent to Ollama, waiting for response");
-                                    exchange.setResponseListener(
-                                            new io.undertow.client.ClientCallback<io.undertow.client.ClientExchange>() {
+                                public void completed(io.undertow.client.ClientExchange result) {
+                                    logger.debug("Response received from Ollama");
+                                    result.getResponseChannel().getReadSetter().set(
+                                            new org.xnio.ChannelListener<org.xnio.channels.StreamSourceChannel>() {
                                                 @Override
-                                                public void completed(io.undertow.client.ClientExchange result) {
-                                                    logger.debug("Response received from Ollama");
-                                                    result.getResponseChannel().getReadSetter().set(
-                                                            new org.xnio.ChannelListener<org.xnio.channels.StreamSourceChannel>() {
-                                                                @Override
-                                                                public void handleEvent(
-                                                                        org.xnio.channels.StreamSourceChannel channel) {
-                                                                    try {
-                                                                        java.nio.ByteBuffer buffer = java.nio.ByteBuffer
-                                                                                .allocate(1024);
-                                                                        int read = 0;
-                                                                        while ((read = channel.read(buffer)) > 0) {
-                                                                            buffer.flip();
-                                                                            String chunk = new String(buffer.array(), 0,
-                                                                                    read,
-                                                                                    java.nio.charset.StandardCharsets.UTF_8);
-                                                                            logger.trace("Received chunk: {}", chunk);
-                                                                            // Process NDJSON chunk
-                                                                            String[] lines = chunk.split("\n");
-                                                                            for (String line : lines) {
-                                                                                if (line.trim().isEmpty())
-                                                                                    continue;
-                                                                                try {
-                                                                                    Map<String, Object> responseMap = mapper
-                                                                                            .readValue(line, Map.class);
-                                                                                    Map<String, Object> message = (Map<String, Object>) responseMap
-                                                                                            .get("message");
-                                                                                    if (message != null) {
-                                                                                        String content = (String) message
-                                                                                                .get("content");
-                                                                                        if (content != null
-                                                                                                && !content.isEmpty())
-                                                                                            callback.onEvent(content);
-                                                                                    }
-                                                                                    Boolean done = (Boolean) responseMap
-                                                                                            .get("done");
-                                                                                    if (Boolean.TRUE.equals(done)) {
-                                                                                        logger.debug("Stream complete");
-                                                                                        callback.onComplete();
-                                                                                    }
-                                                                                } catch (Exception e) {
-                                                                                    logger.error("Error parsing chunk",
-                                                                                            e);
-                                                                                }
-                                                                            }
-                                                                            buffer.clear();
-                                                                        }
-                                                                        if (read == -1) {
-                                                                            logger.debug("Channel closed");
-                                                                        }
-                                                                    } catch (java.io.IOException e) {
-                                                                        logger.error("IOException in read listener", e);
-                                                                        callback.onError(e);
+                                                public void handleEvent(
+                                                        org.xnio.channels.StreamSourceChannel channel) {
+                                                    try {
+                                                        java.nio.ByteBuffer buffer = java.nio.ByteBuffer
+                                                                .allocate(1024);
+                                                        int read = 0;
+                                                        while ((read = channel.read(buffer)) > 0) {
+                                                            buffer.flip();
+                                                            String chunk = new String(buffer.array(), 0,
+                                                                    read,
+                                                                    java.nio.charset.StandardCharsets.UTF_8);
+                                                            logger.trace("Received chunk: {}", chunk);
+                                                            // Process NDJSON chunk
+                                                            String[] lines = chunk.split("\n");
+                                                            for (String line : lines) {
+                                                                if (line.trim().isEmpty())
+                                                                    continue;
+                                                                try {
+                                                                    Map<String, Object> responseMap = mapper
+                                                                            .readValue(line, Map.class);
+                                                                    Map<String, Object> message = (Map<String, Object>) responseMap
+                                                                            .get("message");
+                                                                    if (message != null) {
+                                                                        String content = (String) message
+                                                                                .get("content");
+                                                                        if (content != null
+                                                                                && !content.isEmpty())
+                                                                            wrappedCallback.onEvent(content);
                                                                     }
+                                                                    Boolean done = (Boolean) responseMap
+                                                                            .get("done");
+                                                                    if (Boolean.TRUE.equals(done)) {
+                                                                        logger.debug("Stream complete");
+                                                                        wrappedCallback.onComplete();
+                                                                    }
+                                                                } catch (Exception e) {
+                                                                    logger.error("Error parsing chunk",
+                                                                            e);
                                                                 }
-                                                            });
-                                                    result.getResponseChannel().resumeReads();
-                                                }
-
-                                                @Override
-                                                public void failed(java.io.IOException e) {
-                                                    logger.error("Response listener failed", e);
-                                                    callback.onError(e);
+                                                            }
+                                                            buffer.clear();
+                                                        }
+                                                        if (read == -1) {
+                                                            logger.debug("Channel closed");
+                                                        }
+                                                    } catch (java.io.IOException e) {
+                                                        logger.error("IOException in read listener", e);
+                                                        wrappedCallback.onError(e);
+                                                    }
                                                 }
                                             });
-
-                                    // Send body
-                                    try {
-                                        org.xnio.channels.StreamSinkChannel requestChannel = exchange
-                                                .getRequestChannel();
-                                        java.nio.ByteBuffer buffer = java.nio.ByteBuffer
-                                                .wrap(jsonBody.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-
-                                        // Simple async write attempt
-                                        int written = 0;
-                                        while (buffer.hasRemaining()) {
-                                            written = requestChannel.write(buffer);
-                                            if (written == 0) {
-                                                // Should handle blocking write propertly via listener but for short
-                                                // JSON likely OK to just break if logic simple
-                                                // or strictly implement listener.
-                                                // Implementing write listener for correctness:
-                                                requestChannel.getWriteSetter().set(channel -> {
-                                                    try {
-                                                        while (buffer.hasRemaining()) {
-                                                            int w = channel.write(buffer);
-                                                            if (w == 0)
-                                                                return;
-                                                        }
-                                                        channel.shutdownWrites();
-                                                        channel.flush();
-                                                    } catch (java.io.IOException e) {
-                                                        logger.error("Error writing body async", e);
-                                                        callback.onError(e);
-                                                    }
-                                                });
-                                                requestChannel.resumeWrites();
-                                                return;
-                                            }
-                                        }
-                                        requestChannel.shutdownWrites();
-                                        requestChannel.flush();
-                                    } catch (Exception e) {
-                                        logger.error("Error sending request body", e);
-                                        callback.onError(e);
-                                    }
+                                    result.getResponseChannel().resumeReads();
                                 }
 
                                 @Override
                                 public void failed(java.io.IOException e) {
-                                    logger.error("Send request failed", e);
-                                    callback.onError(e);
+                                    logger.error("Response listener failed", e);
+                                    wrappedCallback.onError(e);
                                 }
                             });
-                        } catch (Exception e) {
-                            logger.error("Failed to get connection", e);
-                            callback.onError(e);
+
+                    // Send body
+                    try {
+                        org.xnio.channels.StreamSinkChannel requestChannel = exchange
+                                .getRequestChannel();
+                        java.nio.ByteBuffer buffer = java.nio.ByteBuffer
+                                .wrap(jsonBody.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+                        // Simple async write attempt
+                        int written = 0;
+                        while (buffer.hasRemaining()) {
+                            written = requestChannel.write(buffer);
+                            if (written == 0) {
+                                // Should handle blocking write propertly via listener but for short
+                                // JSON likely OK to just break if logic simple
+                                // or strictly implement listener.
+                                // Implementing write listener for correctness:
+                                requestChannel.getWriteSetter().set(channel -> {
+                                    try {
+                                        while (buffer.hasRemaining()) {
+                                            int w = channel.write(buffer);
+                                            if (w == 0)
+                                                return;
+                                        }
+                                        channel.shutdownWrites();
+                                        channel.flush();
+                                    } catch (java.io.IOException e) {
+                                        logger.error("Error writing body async", e);
+                                        wrappedCallback.onError(e);
+                                    }
+                                });
+                                requestChannel.resumeWrites();
+                                return;
+                            }
                         }
-                    } else {
-                        logger.error("Connection failed with status: " + ioFuture.getStatus(), ioFuture.getException());
-                        callback.onError(ioFuture.getException());
+                        requestChannel.shutdownWrites();
+                        requestChannel.flush();
+                    } catch (Exception e) {
+                        logger.error("Error sending request body", e);
+                        wrappedCallback.onError(e);
                     }
                 }
-            }, null);
+
+                @Override
+                public void failed(java.io.IOException e) {
+                    logger.error("Send request failed", e);
+                    wrappedCallback.onError(e);
+                }
+            });
 
         } catch (Exception e) {
             logger.error("Exception in chatStream", e);
             callback.onError(e);
+            if (connectionToken != null)
+                client.restore(connectionToken);
         }
     }
 }
