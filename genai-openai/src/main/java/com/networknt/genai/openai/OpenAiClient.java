@@ -103,6 +103,7 @@ public class OpenAiClient implements GenAiClient {
     public void chatStream(java.util.List<com.networknt.genai.ChatMessage> messages,
             RequestOptions options,
             com.networknt.genai.StreamCallback callback) {
+        SimpleConnectionHolder.ConnectionToken connectionToken = null;
         try {
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("model", options.getModel() != null ? options.getModel() : config.getModel());
@@ -111,163 +112,177 @@ public class OpenAiClient implements GenAiClient {
 
             String jsonBody = mapper.writeValueAsString(requestBody);
             URI uri = new URI(config.getUrl());
-            org.xnio.IoFuture<ClientConnection> future = client.connect(uri, Http2Client.WORKER, Http2Client.SSL,
+            connectionToken = client.borrow(uri, Http2Client.WORKER, Http2Client.SSL,
                     Http2Client.BUFFER_POOL, OptionMap.EMPTY);
+            ClientConnection connection = (ClientConnection) connectionToken.getRawConnection();
 
-            future.addNotifier(new org.xnio.IoFuture.Notifier<ClientConnection, Object>() {
+            final SimpleConnectionHolder.ConnectionToken finalToken = connectionToken;
+            com.networknt.genai.StreamCallback wrappedCallback = new com.networknt.genai.StreamCallback() {
                 @Override
-                public void notify(org.xnio.IoFuture<? extends ClientConnection> ioFuture, Object attachment) {
-                    if (ioFuture.getStatus() == org.xnio.IoFuture.Status.DONE) {
-                        try {
-                            ClientConnection connection = ioFuture.get();
-                            ClientRequest request = new ClientRequest().setMethod(Methods.POST).setPath(uri.getPath());
-                            request.getRequestHeaders().put(Headers.HOST, uri.getHost());
-                            request.getRequestHeaders().put(Headers.CONTENT_TYPE, "application/json");
-                            request.getRequestHeaders().put(Headers.AUTHORIZATION, "Bearer " + config.getApiKey());
-                            request.getRequestHeaders().put(Headers.TRANSFER_ENCODING, "chunked");
+                public void onEvent(String content) {
+                    callback.onEvent(content);
+                }
 
-                            connection.sendRequest(request,
+                @Override
+                public void onComplete() {
+                    try {
+                        callback.onComplete();
+                    } finally {
+                        client.restore(finalToken);
+                    }
+                }
+
+                @Override
+                public void onError(Throwable t) {
+                    try {
+                        callback.onError(t);
+                    } finally {
+                        client.restore(finalToken);
+                    }
+                }
+            };
+
+            ClientRequest request = new ClientRequest().setMethod(Methods.POST).setPath(uri.getPath());
+            request.getRequestHeaders().put(Headers.HOST, uri.getHost());
+            request.getRequestHeaders().put(Headers.CONTENT_TYPE, "application/json");
+            request.getRequestHeaders().put(Headers.AUTHORIZATION, "Bearer " + config.getApiKey());
+            request.getRequestHeaders().put(Headers.TRANSFER_ENCODING, "chunked");
+
+            connection.sendRequest(request,
+                    new io.undertow.client.ClientCallback<io.undertow.client.ClientExchange>() {
+                        @Override
+                        public void completed(io.undertow.client.ClientExchange exchange) {
+                            exchange.setResponseListener(
                                     new io.undertow.client.ClientCallback<io.undertow.client.ClientExchange>() {
                                         @Override
-                                        public void completed(io.undertow.client.ClientExchange exchange) {
-                                            exchange.setResponseListener(
-                                                    new io.undertow.client.ClientCallback<io.undertow.client.ClientExchange>() {
+                                        public void completed(
+                                                io.undertow.client.ClientExchange result) {
+                                            result.getResponseChannel().getReadSetter()
+                                                    .set(new org.xnio.ChannelListener<org.xnio.channels.StreamSourceChannel>() {
                                                         @Override
-                                                        public void completed(
-                                                                io.undertow.client.ClientExchange result) {
-                                                            result.getResponseChannel().getReadSetter()
-                                                                    .set(new org.xnio.ChannelListener<org.xnio.channels.StreamSourceChannel>() {
-                                                                        @Override
-                                                                        public void handleEvent(
-                                                                                org.xnio.channels.StreamSourceChannel channel) {
-                                                                            try {
-                                                                                java.nio.ByteBuffer buffer = java.nio.ByteBuffer
-                                                                                        .allocate(1024);
-                                                                                int read = 0;
-                                                                                while ((read = channel
-                                                                                        .read(buffer)) > 0) {
-                                                                                    buffer.flip();
-                                                                                    String chunk = new String(
-                                                                                            buffer.array(), 0, read,
-                                                                                            java.nio.charset.StandardCharsets.UTF_8);
-                                                                                    String[] lines = chunk.split("\n");
-                                                                                    for (String line : lines) {
-                                                                                        line = line.trim();
-                                                                                        if (line.startsWith("data: ")) {
-                                                                                            String data = line
-                                                                                                    .substring(6)
-                                                                                                    .trim();
-                                                                                            if ("[DONE]".equals(data)) {
-                                                                                                callback.onComplete();
-                                                                                            } else {
-                                                                                                try {
-                                                                                                    Map<String, Object> responseMap = mapper
-                                                                                                            .readValue(
-                                                                                                                    data,
-                                                                                                                    Map.class);
-                                                                                                    List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap
-                                                                                                            .get("choices");
-                                                                                                    if (choices != null
-                                                                                                            && !choices
-                                                                                                                    .isEmpty()) {
-                                                                                                        Map<String, Object> delta = (Map<String, Object>) choices
-                                                                                                                .get(0)
-                                                                                                                .get("delta");
-                                                                                                        if (delta != null
-                                                                                                                && delta.containsKey(
-                                                                                                                        "content")) {
-                                                                                                            String content = (String) delta
-                                                                                                                    .get("content");
-                                                                                                            if (content != null
-                                                                                                                    && !content
-                                                                                                                            .isEmpty()) {
-                                                                                                                callback.onEvent(
-                                                                                                                        content);
-                                                                                                            }
-                                                                                                        }
-                                                                                                    }
-                                                                                                } catch (Exception e) {
-                                                                                                    // Ignore parse
-                                                                                                    // error for partial
-                                                                                                    // lines
-                                                                                                }
+                                                        public void handleEvent(
+                                                                org.xnio.channels.StreamSourceChannel channel) {
+                                                            try {
+                                                                java.nio.ByteBuffer buffer = java.nio.ByteBuffer
+                                                                        .allocate(1024);
+                                                                int read = 0;
+                                                                while ((read = channel
+                                                                        .read(buffer)) > 0) {
+                                                                    buffer.flip();
+                                                                    String chunk = new String(
+                                                                            buffer.array(), 0, read,
+                                                                            java.nio.charset.StandardCharsets.UTF_8);
+                                                                    String[] lines = chunk.split("\n");
+                                                                    for (String line : lines) {
+                                                                        line = line.trim();
+                                                                        if (line.startsWith("data: ")) {
+                                                                            String data = line
+                                                                                    .substring(6)
+                                                                                    .trim();
+                                                                            if ("[DONE]".equals(data)) {
+                                                                                wrappedCallback.onComplete();
+                                                                            } else {
+                                                                                try {
+                                                                                    Map<String, Object> responseMap = mapper
+                                                                                            .readValue(
+                                                                                                    data,
+                                                                                                    Map.class);
+                                                                                    List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap
+                                                                                            .get("choices");
+                                                                                    if (choices != null
+                                                                                            && !choices
+                                                                                                    .isEmpty()) {
+                                                                                        Map<String, Object> delta = (Map<String, Object>) choices
+                                                                                                .get(0)
+                                                                                                .get("delta");
+                                                                                        if (delta != null
+                                                                                                && delta.containsKey(
+                                                                                                        "content")) {
+                                                                                            String content = (String) delta
+                                                                                                    .get("content");
+                                                                                            if (content != null
+                                                                                                    && !content
+                                                                                                            .isEmpty()) {
+                                                                                                wrappedCallback.onEvent(
+                                                                                                        content);
                                                                                             }
                                                                                         }
                                                                                     }
-                                                                                    buffer.clear();
+                                                                                } catch (Exception e) {
+                                                                                    // Ignore parse
+                                                                                    // error for partial
+                                                                                    // lines
                                                                                 }
-                                                                                if (read == -1) {
-                                                                                    // End of stream
-                                                                                }
-                                                                            } catch (java.io.IOException e) {
-                                                                                callback.onError(e);
                                                                             }
                                                                         }
-                                                                    });
-                                                            result.getResponseChannel().resumeReads();
-                                                        }
-
-                                                        @Override
-                                                        public void failed(java.io.IOException e) {
-                                                            callback.onError(e);
+                                                                    }
+                                                                    buffer.clear();
+                                                                }
+                                                                if (read == -1) {
+                                                                    // End of stream
+                                                                }
+                                                            } catch (java.io.IOException e) {
+                                                                wrappedCallback.onError(e);
+                                                            }
                                                         }
                                                     });
-
-                                            // Write body async
-                                            try {
-                                                org.xnio.channels.StreamSinkChannel requestChannel = exchange
-                                                        .getRequestChannel();
-                                                java.nio.ByteBuffer buffer = java.nio.ByteBuffer.wrap(
-                                                        jsonBody.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-
-                                                int written = 0;
-                                                while (buffer.hasRemaining()) {
-                                                    written = requestChannel.write(buffer);
-                                                    if (written == 0) {
-                                                        requestChannel.getWriteSetter().set(channel -> {
-                                                            try {
-                                                                while (buffer.hasRemaining()) {
-                                                                    int w = channel.write(buffer);
-                                                                    if (w == 0)
-                                                                        return;
-                                                                }
-                                                                channel.shutdownWrites();
-                                                                channel.flush();
-                                                            } catch (java.io.IOException e) {
-                                                                logger.error("Error writing body async", e);
-                                                                callback.onError(e);
-                                                            }
-                                                        });
-                                                        requestChannel.resumeWrites();
-                                                        return;
-                                                    }
-                                                }
-                                                requestChannel.shutdownWrites();
-                                                requestChannel.flush();
-                                            } catch (Exception e) {
-                                                logger.error("Error sending request body", e);
-                                                callback.onError(e);
-                                            }
+                                            result.getResponseChannel().resumeReads();
                                         }
 
                                         @Override
                                         public void failed(java.io.IOException e) {
-                                            callback.onError(e);
+                                            wrappedCallback.onError(e);
                                         }
                                     });
-                        } catch (Exception e) {
-                            logger.error("Failed to get connection", e);
-                            callback.onError(e);
+
+                            // Write body async
+                            try {
+                                org.xnio.channels.StreamSinkChannel requestChannel = exchange
+                                        .getRequestChannel();
+                                java.nio.ByteBuffer buffer = java.nio.ByteBuffer.wrap(
+                                        jsonBody.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+                                int written = 0;
+                                while (buffer.hasRemaining()) {
+                                    written = requestChannel.write(buffer);
+                                    if (written == 0) {
+                                        requestChannel.getWriteSetter().set(channel -> {
+                                            try {
+                                                while (buffer.hasRemaining()) {
+                                                    int w = channel.write(buffer);
+                                                    if (w == 0)
+                                                        return;
+                                                }
+                                                channel.shutdownWrites();
+                                                channel.flush();
+                                            } catch (java.io.IOException e) {
+                                                logger.error("Error writing body async", e);
+                                                wrappedCallback.onError(e);
+                                            }
+                                        });
+                                        requestChannel.resumeWrites();
+                                        return;
+                                    }
+                                }
+                                requestChannel.shutdownWrites();
+                                requestChannel.flush();
+                            } catch (Exception e) {
+                                logger.error("Error sending request body", e);
+                                wrappedCallback.onError(e);
+                            }
                         }
-                    } else {
-                        logger.error("Connection failed", ioFuture.getException());
-                        callback.onError(ioFuture.getException());
-                    }
-                }
-            }, null);
+
+                        @Override
+                        public void failed(java.io.IOException e) {
+                            wrappedCallback.onError(e);
+                        }
+                    });
 
         } catch (Exception e) {
+            logger.error("Exception invoking OpenAI API", e);
             callback.onError(e);
+            if (connectionToken != null)
+                client.restore(connectionToken);
         }
     }
 }
