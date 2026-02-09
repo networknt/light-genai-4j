@@ -1,0 +1,168 @@
+package com.networknt.agent.service;
+
+import static com.networknt.agent.internal.RetryUtils.DEFAULT_RETRY_POLICY;
+import static com.networknt.agent.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import com.networknt.agent.data.message.AiMessage;
+import com.networknt.agent.exception.AuthenticationException;
+import com.networknt.agent.exception.HttpException;
+import com.networknt.agent.exception.ModelNotFoundException;
+import com.networknt.agent.exception.RateLimitException;
+import com.networknt.agent.memory.ChatMemory;
+import com.networknt.agent.memory.chat.MessageWindowChatMemory;
+import com.networknt.agent.model.chat.ChatModel;
+import com.networknt.agent.model.chat.mock.ChatModelMock;
+import com.networknt.agent.model.openai.OpenAiChatModel;
+import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+
+class AiServiceThrowingExceptionIT {
+
+    interface ThrowingService {
+        Result<AiMessage> chat(String userMessage);
+    }
+
+    @Test
+    void with_no_retry() {
+
+        AtomicInteger invocationCount = new AtomicInteger(0);
+
+        ChatModel chatModel = new ChatModelMock(chatRequest -> {
+            invocationCount.incrementAndGet();
+            throw new HttpException(429, "Insufficient quota");
+        });
+
+        ChatMemory chatMemory = MessageWindowChatMemory.withMaxMessages(10);
+
+        ThrowingService assistant = AiServices.builder(ThrowingService.class)
+                .chatModel(chatModel)
+                .chatMemory(chatMemory)
+                .build();
+
+        assertThatThrownBy(() -> assistant.chat("hi"))
+                .isExactlyInstanceOf(RateLimitException.class)
+                .hasMessageContaining("Insufficient quota");
+
+        assertThat(invocationCount.get()).isEqualTo(1);
+    }
+
+    @Test
+    void with_recoverable_retry() {
+
+        AtomicInteger invocationCount = new AtomicInteger(0);
+
+        ChatModel chatModel = new ChatModelMock(chatRequest -> {
+                    invocationCount.incrementAndGet();
+                    throw new HttpException(429, "Insufficient quota");
+                })
+                .withRetryPolicy(DEFAULT_RETRY_POLICY);
+
+        ChatMemory chatMemory = MessageWindowChatMemory.withMaxMessages(10);
+
+        ThrowingService assistant = AiServices.builder(ThrowingService.class)
+                .chatModel(chatModel)
+                .chatMemory(chatMemory)
+                .build();
+
+        assertThatThrownBy(() -> assistant.chat("hi"))
+                .isExactlyInstanceOf(RateLimitException.class)
+                .hasMessageContaining("Insufficient quota");
+
+        assertThat(invocationCount.get()).isEqualTo(3);
+    }
+
+    @Test
+    void with_unrecoverable_retry() {
+
+        AtomicInteger invocationCount = new AtomicInteger(0);
+
+        ChatModel chatModel = new ChatModelMock(chatRequest -> {
+                    invocationCount.incrementAndGet();
+                    throw new HttpException(404, "Not Found");
+                })
+                .withRetryPolicy(DEFAULT_RETRY_POLICY);
+
+        ChatMemory chatMemory = MessageWindowChatMemory.withMaxMessages(10);
+
+        ThrowingService assistant = AiServices.builder(ThrowingService.class)
+                .chatModel(chatModel)
+                .chatMemory(chatMemory)
+                .build();
+
+        assertThatThrownBy(() -> assistant.chat("hi"))
+                .isExactlyInstanceOf(ModelNotFoundException.class)
+                .hasMessageContaining("Not Found");
+
+        assertThat(invocationCount.get()).isEqualTo(1);
+    }
+
+    @Test
+    @EnabledIfEnvironmentVariable(named = "OPENAI_API_KEY", matches = ".+")
+    void with_wrong_url() {
+
+        // given
+        String wrongUrl = "https://api.openai.com/v0";
+
+        ChatModel chatModel = OpenAiChatModel.builder()
+                .baseUrl(wrongUrl)
+                .apiKey(System.getenv("OPENAI_API_KEY"))
+                .organizationId(System.getenv("OPENAI_ORGANIZATION_ID"))
+                .modelName(GPT_4_O_MINI)
+                .temperature(0.0)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+        ThrowingService assistant =
+                AiServices.builder(ThrowingService.class).chatModel(chatModel).build();
+
+        // when-then
+        assertThatThrownBy(() -> assistant.chat("does not matter"))
+                .isExactlyInstanceOf(ModelNotFoundException.class);
+    }
+
+    @Test
+    @EnabledIfEnvironmentVariable(named = "OPENAI_BASE_URL", matches = ".+")
+    void with_wrong_key() {
+        ChatModel chatModel = OpenAiChatModel.builder()
+                .baseUrl(System.getenv("OPENAI_BASE_URL"))
+                .apiKey("xyz")
+                .organizationId(System.getenv("OPENAI_ORGANIZATION_ID"))
+                .modelName(GPT_4_O_MINI)
+                .temperature(0.0)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+        ThrowingService assistant =
+                AiServices.builder(ThrowingService.class).chatModel(chatModel).build();
+
+        assertThatThrownBy(() -> assistant.chat("hi"))
+                .isExactlyInstanceOf(AuthenticationException.class)
+                .hasMessageContaining("Incorrect API key provided: xyz.");
+    }
+
+    @Test
+    @EnabledIfEnvironmentVariable(named = "OPENAI_API_KEY", matches = ".+")
+    void with_wrong_model() {
+        ChatModel chatModel = OpenAiChatModel.builder()
+                .baseUrl(System.getenv("OPENAI_BASE_URL"))
+                .apiKey(System.getenv("OPENAI_API_KEY"))
+                .organizationId(System.getenv("OPENAI_ORGANIZATION_ID"))
+                .modelName("gpt-0")
+                .temperature(0.0)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+        ThrowingService assistant =
+                AiServices.builder(ThrowingService.class).chatModel(chatModel).build();
+
+        assertThatThrownBy(() -> assistant.chat("hi"))
+                .isExactlyInstanceOf(ModelNotFoundException.class)
+                .hasMessageContaining("The model `gpt-0` does not exist or you do not have access to it.");
+    }
+}
