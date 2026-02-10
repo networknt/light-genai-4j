@@ -34,6 +34,7 @@
         <module>judge0-executor</module>
         <module>ployglot-executor</module>
         <module>llm-openai</module>
+        <module>llm-ollama</module>
     </modules>
 
     <licenses>
@@ -103,7 +104,7 @@
         <version.undertow>2.3.18.Final</version.undertow>
         <version.aws-java-sdk>2.29.15</version.aws-java-sdk>
         <version.graalvm>25.0.2</version.graalvm>
-        
+        <version.mockito>5.21.0</version.mockito>
         <version.maven-compiler>3.13.0</version.maven-compiler>
         <version.maven-surefire>3.5.2</version.maven-surefire>
         <version.maven-source>3.3.1</version.maven-source>
@@ -150,8 +151,19 @@
             </dependency>
             <dependency>
                 <groupId>com.networknt</groupId>
+                <artifactId>agent-client</artifactId>
+                <version>${version.light-4j}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.networknt</groupId>
                 <artifactId>agent-service</artifactId>
                 <version>${version.light-4j}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.networknt</groupId>
+                <artifactId>jdk-http-client</artifactId>
+                <version>${version.light-4j}</version>
+                <scope>runtime</scope>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
@@ -218,6 +230,36 @@
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-params</artifactId>
                 <version>${version.junit}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>ollama</artifactId>
+                <version>1.20.0</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>mockwebserver</artifactId>
+                <version>4.12.0</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.networknt</groupId>
+                <artifactId>llm-openai</artifactId>
+                <version>${version.light-4j}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${version.mockito}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-junit-jupiter</artifactId>
+                <version>${version.mockito}</version>
                 <scope>test</scope>
             </dependency>
 
