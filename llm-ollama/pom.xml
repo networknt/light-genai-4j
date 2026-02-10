@@ -153,9 +153,25 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- Merge with parent POM argLine for Jacoco compatibility -->
+                    <argLine>-Djdk.attach.allowAttachSelf=true</argLine>
+                    <!-- Run tests sequentially to avoid Docker container conflicts -->
+                    <forkCount>1</forkCount>
+                    <reuseForks>false</reuseForks>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <configuration>
                     <skipITs>false</skipITs>
+                    <!-- Merge with parent POM argLine for Jacoco compatibility -->
+                    <argLine>-Djdk.attach.allowAttachSelf=true</argLine>
+                    <!-- Run tests sequentially to avoid Docker container conflicts -->
+                    <forkCount>1</forkCount>
+                    <reuseForks>false</reuseForks>
                 </configuration>
             </plugin>
         </plugins>

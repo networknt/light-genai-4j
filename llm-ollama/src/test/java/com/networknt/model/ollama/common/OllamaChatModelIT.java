@@ -93,18 +93,16 @@ class OllamaChatModelIT extends AbstractChatModelIT {
     static final OpenAiOfficialChatModel OPEN_AI_CHAT_MODEL_WITH_TOOLS = OpenAiOfficialChatModel.builder()
             .baseUrl(ollamaBaseUrl(ollamaWithTools) + "/v1")
             .modelName(MODEL_WITH_TOOLS)
+            .apiKey("ollama")
             .temperature(0.0)
-            //.logRequests(true)
-            //.logResponses(true)
             .timeout(ofSeconds(180))
             .build();
 
     static final OpenAiOfficialChatModel OPEN_AI_CHAT_MODEL_WITH_VISION = OpenAiOfficialChatModel.builder()
             .baseUrl(ollamaBaseUrl(ollamaWithVision) + "/v1")
             .modelName(MODEL_WITH_VISION)
+            .apiKey("ollama")
             .temperature(0.0)
-            //.logRequests(false) // base64-encoded images are huge in logs
-            //.logResponses(true)
             .timeout(ofSeconds(180))
             .build();
 
@@ -122,6 +120,11 @@ class OllamaChatModelIT extends AbstractChatModelIT {
     @Override
     @Disabled("llama 3.1 cannot do it properly")
     protected void should_execute_a_tool_then_answer_respecting_JSON_response_format_with_schema(ChatModel model) {
+    }
+
+    @Override
+    @Disabled("llama 3.1 generates hallucinated arguments for tools without parameters")
+    protected void should_execute_a_tool_without_arguments_then_answer(ChatModel model) {
     }
 
     @Override
