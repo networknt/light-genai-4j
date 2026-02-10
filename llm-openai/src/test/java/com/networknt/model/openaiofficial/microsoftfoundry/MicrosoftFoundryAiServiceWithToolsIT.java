@@ -1,7 +1,7 @@
 package com.networknt.model.openaiofficial.microsoftfoundry;
 
-import com.networknt.model.chat.ChatModel;
-import com.networknt.service.common.AbstractAiServiceWithToolsIT;
+import com.networknt.agent.model.chat.ChatModel;
+import com.networknt.agent.service.common.AbstractAiServiceWithToolsIT;
 import java.util.List;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 

@@ -2,9 +2,9 @@ package com.networknt.model.openaiofficial.openai;
 
 import static java.util.Collections.singletonList;
 
-import com.networknt.model.chat.ChatModel;
-import com.networknt.model.chat.common.AbstractChatModelListenerIT;
-import com.networknt.model.chat.listener.ChatModelListener;
+import com.networknt.agent.model.chat.ChatModel;
+import com.networknt.agent.model.chat.common.AbstractChatModelListenerIT;
+import com.networknt.agent.model.chat.listener.ChatModelListener;
 import com.networknt.model.openaiofficial.OpenAiOfficialChatModel;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 

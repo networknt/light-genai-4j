@@ -1,6 +1,6 @@
 package com.networknt.model.openaiofficial.github;
 
-import com.networknt.model.chat.ChatModel;
+import com.networknt.agent.model.chat.ChatModel;
 import com.networknt.model.openaiofficial.OpenAiOfficialChatModel;
 import java.util.ArrayList;
 import java.util.List;

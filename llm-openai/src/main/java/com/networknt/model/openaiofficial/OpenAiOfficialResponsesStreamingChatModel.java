@@ -1,12 +1,12 @@
 package com.networknt.model.openaiofficial;
 
-import static com.networknt.internal.InternalStreamingChatResponseHandlerUtils.onPartialResponse;
-import static com.networknt.internal.InternalStreamingChatResponseHandlerUtils.withLoggingExceptions;
-import static com.networknt.internal.JsonSchemaElementUtils.toMap;
-import static com.networknt.internal.Utils.copy;
-import static com.networknt.internal.Utils.copyIfNotNull;
-import static com.networknt.internal.Utils.getOrDefault;
-import static com.networknt.internal.ValidationUtils.ensureNotNull;
+import static com.networknt.agent.internal.InternalStreamingChatResponseHandlerUtils.onPartialResponse;
+import static com.networknt.agent.internal.InternalStreamingChatResponseHandlerUtils.withLoggingExceptions;
+import static com.networknt.agent.internal.JsonSchemaElementUtils.toMap;
+import static com.networknt.agent.internal.Utils.copy;
+import static com.networknt.agent.internal.Utils.copyIfNotNull;
+import static com.networknt.agent.internal.Utils.getOrDefault;
+import static com.networknt.agent.internal.ValidationUtils.ensureNotNull;
 import static com.networknt.model.openaiofficial.setup.OpenAiOfficialSetup.setupSyncClient;
 import static java.util.Arrays.asList;
 
@@ -44,35 +44,35 @@ import com.openai.models.responses.ResponseStreamEvent;
 import com.openai.models.responses.ResponseTextConfig;
 import com.openai.models.responses.ResponseTextDeltaEvent;
 import com.openai.models.responses.ToolChoiceOptions;
-import com.networknt.Experimental;
+import com.networknt.agent.Experimental;
 import com.networknt.agent.tool.ToolExecutionRequest;
 import com.networknt.agent.tool.ToolSpecification;
-import com.networknt.data.image.Image;
-import com.networknt.data.message.AiMessage;
-import com.networknt.data.message.ChatMessage;
-import com.networknt.data.message.Content;
-import com.networknt.data.message.ImageContent;
-import com.networknt.data.message.SystemMessage;
-import com.networknt.data.message.TextContent;
-import com.networknt.data.message.ToolExecutionResultMessage;
-import com.networknt.data.message.UserMessage;
-import com.networknt.internal.DefaultExecutorProvider;
-import com.networknt.internal.ExceptionMapper;
-import com.networknt.model.ModelProvider;
-import com.networknt.model.chat.StreamingChatModel;
-import com.networknt.model.chat.listener.ChatModelListener;
-import com.networknt.model.chat.request.ChatRequest;
-import com.networknt.model.chat.request.ChatRequestParameters;
-import com.networknt.model.chat.request.ResponseFormat;
-import com.networknt.model.chat.request.ResponseFormatType;
-import com.networknt.model.chat.request.ToolChoice;
-import com.networknt.model.chat.request.json.JsonObjectSchema;
-import com.networknt.model.chat.request.json.JsonRawSchema;
-import com.networknt.model.chat.request.json.JsonSchema;
-import com.networknt.model.chat.response.ChatResponse;
-import com.networknt.model.chat.response.CompleteToolCall;
-import com.networknt.model.chat.response.StreamingChatResponseHandler;
-import com.networknt.model.chat.response.StreamingHandle;
+import com.networknt.agent.data.image.Image;
+import com.networknt.agent.data.message.AiMessage;
+import com.networknt.agent.data.message.ChatMessage;
+import com.networknt.agent.data.message.Content;
+import com.networknt.agent.data.message.ImageContent;
+import com.networknt.agent.data.message.SystemMessage;
+import com.networknt.agent.data.message.TextContent;
+import com.networknt.agent.data.message.ToolExecutionResultMessage;
+import com.networknt.agent.data.message.UserMessage;
+import com.networknt.agent.internal.DefaultExecutorProvider;
+import com.networknt.agent.internal.ExceptionMapper;
+import com.networknt.agent.model.ModelProvider;
+import com.networknt.agent.model.chat.StreamingChatModel;
+import com.networknt.agent.model.chat.listener.ChatModelListener;
+import com.networknt.agent.model.chat.request.ChatRequest;
+import com.networknt.agent.model.chat.request.ChatRequestParameters;
+import com.networknt.agent.model.chat.request.ResponseFormat;
+import com.networknt.agent.model.chat.request.ResponseFormatType;
+import com.networknt.agent.model.chat.request.ToolChoice;
+import com.networknt.agent.model.chat.request.json.JsonObjectSchema;
+import com.networknt.agent.model.chat.request.json.JsonRawSchema;
+import com.networknt.agent.model.chat.request.json.JsonSchema;
+import com.networknt.agent.model.chat.response.ChatResponse;
+import com.networknt.agent.model.chat.response.CompleteToolCall;
+import com.networknt.agent.model.chat.response.StreamingChatResponseHandler;
+import com.networknt.agent.model.chat.response.StreamingHandle;
 import java.net.Proxy;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -965,7 +965,7 @@ public class OpenAiOfficialResponsesStreamingChatModel implements StreamingChatM
                     OpenAiOfficialChatResponseMetadata.builder().id(responseId).modelName(modelName);
 
             if (finishReason != null) {
-                metadataBuilder.finishReason(com.networknt.model.output.FinishReason.valueOf(finishReason));
+                metadataBuilder.finishReason(com.networknt.agent.model.output.FinishReason.valueOf(finishReason));
             }
 
             if (tokenUsage != null) {

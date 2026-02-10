@@ -8,7 +8,7 @@ import com.openai.client.OpenAIClientAsync;
 import com.openai.client.okhttp.OpenAIOkHttpClient;
 import com.openai.client.okhttp.OpenAIOkHttpClientAsync;
 import com.openai.credential.Credential;
-import com.networknt.model.ModelProvider;
+import com.networknt.agent.model.ModelProvider;
 import java.net.Proxy;
 import java.time.Duration;
 import java.util.Collections;

@@ -1,11 +1,11 @@
 package com.networknt.model.openaiofficial.microsoftfoundry;
 
-import static com.networknt.model.chat.Capability.RESPONSE_FORMAT_JSON_SCHEMA;
+import static com.networknt.agent.model.chat.Capability.RESPONSE_FORMAT_JSON_SCHEMA;
 
 import com.openai.models.images.ImageGenerateParams;
-import com.networknt.model.chat.ChatModel;
-import com.networknt.model.chat.StreamingChatModel;
-import com.networknt.model.image.ImageModel;
+import com.networknt.agent.model.chat.ChatModel;
+import com.networknt.agent.model.chat.StreamingChatModel;
+import com.networknt.agent.model.image.ImageModel;
 import com.networknt.model.openaiofficial.OpenAiOfficialChatModel;
 import com.networknt.model.openaiofficial.OpenAiOfficialEmbeddingModel;
 import com.networknt.model.openaiofficial.OpenAiOfficialImageModel;
@@ -206,8 +206,8 @@ public class InternalMicrosoftFoundryTestHelper {
         return models;
     }
 
-    static List<com.networknt.model.embedding.EmbeddingModel> embeddingModels() {
-        List<com.networknt.model.embedding.EmbeddingModel> models = new ArrayList<>();
+    static List<com.networknt.agent.model.embedding.EmbeddingModel> embeddingModels() {
+        List<com.networknt.agent.model.embedding.EmbeddingModel> models = new ArrayList<>();
         if (AZURE_OPEN_AI_EMBEDDING_MODEL != null) {
             models.add(AZURE_OPEN_AI_EMBEDDING_MODEL);
         }

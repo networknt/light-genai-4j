@@ -6,21 +6,21 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.openai.client.okhttp.OpenAIOkHttpClient;
 import com.openai.models.ChatModel;
-import com.networknt.data.message.ImageContent;
-import com.networknt.data.message.TextContent;
-import com.networknt.data.message.UserMessage;
-import com.networknt.model.chat.StreamingChatModel;
-import com.networknt.model.chat.TestStreamingChatResponseHandler;
-import com.networknt.model.chat.common.AbstractStreamingChatModelIT;
-import com.networknt.model.chat.listener.ChatModelListener;
-import com.networknt.model.chat.request.ChatRequestParameters;
-import com.networknt.model.chat.response.ChatResponseMetadata;
-import com.networknt.model.chat.response.StreamingChatResponseHandler;
+import com.networknt.agent.data.message.ImageContent;
+import com.networknt.agent.data.message.TextContent;
+import com.networknt.agent.data.message.UserMessage;
+import com.networknt.agent.model.chat.StreamingChatModel;
+import com.networknt.agent.model.chat.TestStreamingChatResponseHandler;
+import com.networknt.agent.model.chat.common.AbstractStreamingChatModelIT;
+import com.networknt.agent.model.chat.listener.ChatModelListener;
+import com.networknt.agent.model.chat.request.ChatRequestParameters;
+import com.networknt.agent.model.chat.response.ChatResponseMetadata;
+import com.networknt.agent.model.chat.response.StreamingChatResponseHandler;
 import com.networknt.model.openaiofficial.OpenAiOfficialChatRequestParameters;
 import com.networknt.model.openaiofficial.OpenAiOfficialChatResponseMetadata;
 import com.networknt.model.openaiofficial.OpenAiOfficialResponsesStreamingChatModel;
 import com.networknt.model.openaiofficial.OpenAiOfficialTokenUsage;
-import com.networknt.model.output.TokenUsage;
+import com.networknt.agent.model.output.TokenUsage;
 import java.util.List;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -132,13 +132,13 @@ class OpenAiOfficialResponsesStreamingChatModelIT extends AbstractStreamingChatM
                 .maxOutputTokens(16)
                 .build();
 
-        com.networknt.model.chat.request.ChatRequest chatRequest =
-                com.networknt.model.chat.request.ChatRequest.builder()
+        com.networknt.agent.model.chat.request.ChatRequest chatRequest =
+                com.networknt.agent.model.chat.request.ChatRequest.builder()
                         .messages(UserMessage.from("Tell me a story"))
                         .parameters(parameters)
                         .build();
 
-        com.networknt.model.chat.response.ChatResponse chatResponse =
+        com.networknt.agent.model.chat.response.ChatResponse chatResponse =
                 chat(model, chatRequest).chatResponse();
 
         assertThat(chatResponse.aiMessage().text()).isNotBlank();
@@ -151,22 +151,22 @@ class OpenAiOfficialResponsesStreamingChatModelIT extends AbstractStreamingChatM
         int maxOutputTokens = 16;
         ChatRequestParameters parameters =
                 ChatRequestParameters.builder().maxOutputTokens(maxOutputTokens).build();
-        com.networknt.model.chat.request.ChatRequest chatRequest =
-                com.networknt.model.chat.request.ChatRequest.builder()
-                        .messages(com.networknt.data.message.UserMessage.from("Tell me a long story"))
+        com.networknt.agent.model.chat.request.ChatRequest chatRequest =
+                com.networknt.agent.model.chat.request.ChatRequest.builder()
+                        .messages(com.networknt.agent.data.message.UserMessage.from("Tell me a long story"))
                         .parameters(parameters)
                         .build();
 
         TestStreamingChatResponseHandler handler = new TestStreamingChatResponseHandler();
         model.chat(chatRequest, handler);
-        com.networknt.model.chat.response.ChatResponse chatResponse = handler.get();
+        com.networknt.agent.model.chat.response.ChatResponse chatResponse = handler.get();
 
-        com.networknt.data.message.AiMessage aiMessage = chatResponse.aiMessage();
+        com.networknt.agent.data.message.AiMessage aiMessage = chatResponse.aiMessage();
         assertThat(aiMessage.text()).isNotBlank();
         assertThat(aiMessage.toolExecutionRequests()).isEmpty();
 
         if (assertTokenUsage()) {
-            com.networknt.model.output.TokenUsage tokenUsage =
+            com.networknt.agent.model.output.TokenUsage tokenUsage =
                     chatResponse.metadata().tokenUsage();
             assertThat(tokenUsage).isExactlyInstanceOf(tokenUsageType(model));
             assertThat(tokenUsage.inputTokenCount()).isGreaterThan(0);
@@ -176,7 +176,7 @@ class OpenAiOfficialResponsesStreamingChatModelIT extends AbstractStreamingChatM
 
         if (assertFinishReason()) {
             assertThat(chatResponse.metadata().finishReason())
-                    .isEqualTo(com.networknt.model.output.FinishReason.LENGTH);
+                    .isEqualTo(com.networknt.agent.model.output.FinishReason.LENGTH);
         }
     }
 
@@ -192,21 +192,21 @@ class OpenAiOfficialResponsesStreamingChatModelIT extends AbstractStreamingChatM
             return;
         }
 
-        com.networknt.model.chat.request.ChatRequest chatRequest =
-                com.networknt.model.chat.request.ChatRequest.builder()
-                        .messages(com.networknt.data.message.UserMessage.from("Tell me a long story"))
+        com.networknt.agent.model.chat.request.ChatRequest chatRequest =
+                com.networknt.agent.model.chat.request.ChatRequest.builder()
+                        .messages(com.networknt.agent.data.message.UserMessage.from("Tell me a long story"))
                         .build();
 
         TestStreamingChatResponseHandler handler = new TestStreamingChatResponseHandler();
         model.chat(chatRequest, handler);
-        com.networknt.model.chat.response.ChatResponse chatResponse = handler.get();
+        com.networknt.agent.model.chat.response.ChatResponse chatResponse = handler.get();
 
-        com.networknt.data.message.AiMessage aiMessage = chatResponse.aiMessage();
+        com.networknt.agent.data.message.AiMessage aiMessage = chatResponse.aiMessage();
         assertThat(aiMessage.text()).isNotBlank();
         assertThat(aiMessage.toolExecutionRequests()).isEmpty();
 
         if (assertTokenUsage()) {
-            com.networknt.model.output.TokenUsage tokenUsage =
+            com.networknt.agent.model.output.TokenUsage tokenUsage =
                     chatResponse.metadata().tokenUsage();
             assertThat(tokenUsage).isExactlyInstanceOf(tokenUsageType(model));
             assertThat(tokenUsage.inputTokenCount()).isGreaterThan(0);
@@ -216,7 +216,7 @@ class OpenAiOfficialResponsesStreamingChatModelIT extends AbstractStreamingChatM
 
         if (assertFinishReason()) {
             assertThat(chatResponse.metadata().finishReason())
-                    .isEqualTo(com.networknt.model.output.FinishReason.LENGTH);
+                    .isEqualTo(com.networknt.agent.model.output.FinishReason.LENGTH);
         }
     }
 
@@ -227,22 +227,22 @@ class OpenAiOfficialResponsesStreamingChatModelIT extends AbstractStreamingChatM
         int maxOutputTokens = 16;
         ChatRequestParameters parameters = createIntegrationSpecificParameters(maxOutputTokens);
 
-        com.networknt.model.chat.request.ChatRequest chatRequest =
-                com.networknt.model.chat.request.ChatRequest.builder()
+        com.networknt.agent.model.chat.request.ChatRequest chatRequest =
+                com.networknt.agent.model.chat.request.ChatRequest.builder()
                         .parameters(parameters)
-                        .messages(com.networknt.data.message.UserMessage.from("Tell me a long story"))
+                        .messages(com.networknt.agent.data.message.UserMessage.from("Tell me a long story"))
                         .build();
 
         TestStreamingChatResponseHandler handler = new TestStreamingChatResponseHandler();
         model.chat(chatRequest, handler);
-        com.networknt.model.chat.response.ChatResponse chatResponse = handler.get();
+        com.networknt.agent.model.chat.response.ChatResponse chatResponse = handler.get();
 
-        com.networknt.data.message.AiMessage aiMessage = chatResponse.aiMessage();
+        com.networknt.agent.data.message.AiMessage aiMessage = chatResponse.aiMessage();
         assertThat(aiMessage.text()).isNotBlank();
         assertThat(aiMessage.toolExecutionRequests()).isEmpty();
 
         if (assertTokenUsage()) {
-            com.networknt.model.output.TokenUsage tokenUsage =
+            com.networknt.agent.model.output.TokenUsage tokenUsage =
                     chatResponse.metadata().tokenUsage();
             assertThat(tokenUsage).isExactlyInstanceOf(tokenUsageType(model));
             assertThat(tokenUsage.inputTokenCount()).isGreaterThan(0);
@@ -252,7 +252,7 @@ class OpenAiOfficialResponsesStreamingChatModelIT extends AbstractStreamingChatM
 
         if (assertFinishReason()) {
             assertThat(chatResponse.metadata().finishReason())
-                    .isEqualTo(com.networknt.model.output.FinishReason.LENGTH);
+                    .isEqualTo(com.networknt.agent.model.output.FinishReason.LENGTH);
         }
     }
 
@@ -273,22 +273,22 @@ class OpenAiOfficialResponsesStreamingChatModelIT extends AbstractStreamingChatM
 
         StreamingChatModel model = createModelWith(parameters);
 
-        com.networknt.model.chat.request.ChatRequest chatRequest =
-                com.networknt.model.chat.request.ChatRequest.builder()
+        com.networknt.agent.model.chat.request.ChatRequest chatRequest =
+                com.networknt.agent.model.chat.request.ChatRequest.builder()
                         .parameters(parameters)
-                        .messages(com.networknt.data.message.UserMessage.from("Tell me a long story"))
+                        .messages(com.networknt.agent.data.message.UserMessage.from("Tell me a long story"))
                         .build();
 
         TestStreamingChatResponseHandler handler = new TestStreamingChatResponseHandler();
         model.chat(chatRequest, handler);
-        com.networknt.model.chat.response.ChatResponse chatResponse = handler.get();
+        com.networknt.agent.model.chat.response.ChatResponse chatResponse = handler.get();
 
-        com.networknt.data.message.AiMessage aiMessage = chatResponse.aiMessage();
+        com.networknt.agent.data.message.AiMessage aiMessage = chatResponse.aiMessage();
         assertThat(aiMessage.text()).isNotBlank();
         assertThat(aiMessage.toolExecutionRequests()).isEmpty();
 
         if (assertTokenUsage()) {
-            com.networknt.model.output.TokenUsage tokenUsage =
+            com.networknt.agent.model.output.TokenUsage tokenUsage =
                     chatResponse.metadata().tokenUsage();
             assertThat(tokenUsage).isExactlyInstanceOf(tokenUsageType(model));
             assertThat(tokenUsage.inputTokenCount()).isGreaterThan(0);
@@ -298,7 +298,7 @@ class OpenAiOfficialResponsesStreamingChatModelIT extends AbstractStreamingChatM
 
         if (assertFinishReason()) {
             assertThat(chatResponse.metadata().finishReason())
-                    .isEqualTo(com.networknt.model.output.FinishReason.LENGTH);
+                    .isEqualTo(com.networknt.agent.model.output.FinishReason.LENGTH);
         }
     }
 
@@ -427,8 +427,8 @@ class OpenAiOfficialResponsesStreamingChatModelIT extends AbstractStreamingChatM
         // given
         UserMessage userMessage =
                 UserMessage.from(TextContent.from("What do you see?"), ImageContent.from(catImageUrl()));
-        com.networknt.model.chat.request.ChatRequest chatRequest =
-                com.networknt.model.chat.request.ChatRequest.builder()
+        com.networknt.agent.model.chat.request.ChatRequest chatRequest =
+                com.networknt.agent.model.chat.request.ChatRequest.builder()
                         .messages(userMessage)
                         .build();
 
@@ -437,7 +437,7 @@ class OpenAiOfficialResponsesStreamingChatModelIT extends AbstractStreamingChatM
     }
 
     @Override
-    protected boolean supportsPartialToolStreaming(com.networknt.model.chat.StreamingChatModel model) {
+    protected boolean supportsPartialToolStreaming(com.networknt.agent.model.chat.StreamingChatModel model) {
         return false;
     }
 

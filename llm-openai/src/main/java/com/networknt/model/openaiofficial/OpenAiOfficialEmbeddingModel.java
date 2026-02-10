@@ -1,7 +1,7 @@
 package com.networknt.model.openaiofficial;
 
-import static com.networknt.internal.Utils.getOrDefault;
-import static com.networknt.internal.ValidationUtils.ensureGreaterThanZero;
+import static com.networknt.agent.internal.Utils.getOrDefault;
+import static com.networknt.agent.internal.ValidationUtils.ensureGreaterThanZero;
 import static com.networknt.model.openaiofficial.InternalOpenAiOfficialHelper.tokenUsageFrom;
 import static com.networknt.model.openaiofficial.setup.OpenAiOfficialSetup.setupSyncClient;
 import static java.util.stream.Collectors.toList;
@@ -12,11 +12,11 @@ import com.openai.credential.Credential;
 import com.openai.models.embeddings.CreateEmbeddingResponse;
 import com.openai.models.embeddings.EmbeddingCreateParams;
 import com.openai.models.embeddings.EmbeddingModel;
-import com.networknt.data.embedding.Embedding;
-import com.networknt.data.segment.TextSegment;
-import com.networknt.model.embedding.DimensionAwareEmbeddingModel;
-import com.networknt.model.output.Response;
-import com.networknt.model.output.TokenUsage;
+import com.networknt.agent.data.embedding.Embedding;
+import com.networknt.agent.data.segment.TextSegment;
+import com.networknt.agent.model.embedding.DimensionAwareEmbeddingModel;
+import com.networknt.agent.model.output.Response;
+import com.networknt.agent.model.output.TokenUsage;
 import java.net.Proxy;
 import java.time.Duration;
 import java.util.ArrayList;

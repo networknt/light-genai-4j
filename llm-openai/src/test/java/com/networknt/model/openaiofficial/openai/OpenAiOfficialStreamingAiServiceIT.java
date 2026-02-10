@@ -1,11 +1,11 @@
 package com.networknt.model.openaiofficial.openai;
 
-import com.networknt.model.chat.StreamingChatModel;
-import com.networknt.model.chat.response.ChatResponseMetadata;
+import com.networknt.agent.model.chat.StreamingChatModel;
+import com.networknt.agent.model.chat.response.ChatResponseMetadata;
 import com.networknt.model.openaiofficial.OpenAiOfficialChatResponseMetadata;
 import com.networknt.model.openaiofficial.OpenAiOfficialTokenUsage;
-import com.networknt.model.output.TokenUsage;
-import com.networknt.service.common.AbstractStreamingAiServiceIT;
+import com.networknt.agent.model.output.TokenUsage;
+import com.networknt.agent.service.common.AbstractStreamingAiServiceIT;
 import java.util.List;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 

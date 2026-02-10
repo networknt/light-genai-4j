@@ -2,9 +2,9 @@ package com.networknt.model.openaiofficial.openai;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.networknt.data.image.Image;
-import com.networknt.model.image.ImageModel;
-import com.networknt.model.output.Response;
+import com.networknt.agent.data.image.Image;
+import com.networknt.agent.model.image.ImageModel;
+import com.networknt.agent.model.output.Response;
 import java.util.List;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;

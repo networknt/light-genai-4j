@@ -51,6 +51,7 @@
         </dependency>
 
         <!-- Test dependencies -->
+
         <dependency>
             <groupId>com.networknt</groupId>
             <artifactId>agent-core</artifactId>
@@ -113,6 +114,17 @@
                 <configuration>
                     <argLine>@{surefireArgLine} -Dnet.bytebuddy.experimental=true</argLine>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

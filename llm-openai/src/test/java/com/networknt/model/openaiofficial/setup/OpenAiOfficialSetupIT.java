@@ -7,10 +7,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.openai.azure.AzureOpenAIServiceVersion;
 import com.openai.client.OpenAIClient;
-import com.networknt.data.message.AiMessage;
-import com.networknt.data.message.UserMessage;
-import com.networknt.model.ModelProvider;
-import com.networknt.model.chat.ChatModel;
+import com.networknt.agent.data.message.AiMessage;
+import com.networknt.agent.data.message.UserMessage;
+import com.networknt.agent.model.ModelProvider;
+import com.networknt.agent.model.chat.ChatModel;
 import com.networknt.model.openaiofficial.OpenAiOfficialChatModel;
 import java.time.Duration;
 import java.util.Collections;

@@ -1,6 +1,6 @@
 package com.networknt.model.openaiofficial;
 
-import com.networknt.model.output.TokenUsage;
+import com.networknt.agent.model.output.TokenUsage;
 import java.util.Objects;
 
 public class OpenAiOfficialTokenUsage extends TokenUsage {

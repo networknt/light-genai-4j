@@ -4,17 +4,17 @@ import static com.networknt.model.openaiofficial.microsoftfoundry.InternalMicros
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 
-import com.networknt.model.chat.StreamingChatModel;
-import com.networknt.model.chat.common.AbstractStreamingChatModelIT;
-import com.networknt.model.chat.listener.ChatModelListener;
-import com.networknt.model.chat.request.ChatRequestParameters;
-import com.networknt.model.chat.response.ChatResponseMetadata;
-import com.networknt.model.chat.response.StreamingChatResponseHandler;
+import com.networknt.agent.model.chat.StreamingChatModel;
+import com.networknt.agent.model.chat.common.AbstractStreamingChatModelIT;
+import com.networknt.agent.model.chat.listener.ChatModelListener;
+import com.networknt.agent.model.chat.request.ChatRequestParameters;
+import com.networknt.agent.model.chat.response.ChatResponseMetadata;
+import com.networknt.agent.model.chat.response.StreamingChatResponseHandler;
 import com.networknt.model.openaiofficial.OpenAiOfficialChatRequestParameters;
 import com.networknt.model.openaiofficial.OpenAiOfficialChatResponseMetadata;
 import com.networknt.model.openaiofficial.OpenAiOfficialStreamingChatModel;
 import com.networknt.model.openaiofficial.OpenAiOfficialTokenUsage;
-import com.networknt.model.output.TokenUsage;
+import com.networknt.agent.model.output.TokenUsage;
 import java.util.List;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.condition.EnabledIf;

@@ -1,10 +1,10 @@
 package com.networknt.model.openaiofficial.openai;
 
-import static com.networknt.model.chat.Capability.RESPONSE_FORMAT_JSON_SCHEMA;
+import static com.networknt.agent.model.chat.Capability.RESPONSE_FORMAT_JSON_SCHEMA;
 
-import com.networknt.model.chat.ChatModel;
-import com.networknt.model.chat.StreamingChatModel;
-import com.networknt.model.image.ImageModel;
+import com.networknt.agent.model.chat.ChatModel;
+import com.networknt.agent.model.chat.StreamingChatModel;
+import com.networknt.agent.model.image.ImageModel;
 import com.networknt.model.openaiofficial.OpenAiOfficialChatModel;
 import com.networknt.model.openaiofficial.OpenAiOfficialEmbeddingModel;
 import com.networknt.model.openaiofficial.OpenAiOfficialImageModel;
@@ -158,8 +158,8 @@ public class InternalOpenAiOfficialTestHelper {
         return models;
     }
 
-    static List<com.networknt.model.embedding.EmbeddingModel> embeddingModels() {
-        List<com.networknt.model.embedding.EmbeddingModel> models = new ArrayList<>();
+    static List<com.networknt.agent.model.embedding.EmbeddingModel> embeddingModels() {
+        List<com.networknt.agent.model.embedding.EmbeddingModel> models = new ArrayList<>();
         if (OPEN_AI_EMBEDDING_MODEL != null) {
             models.add(OPEN_AI_EMBEDDING_MODEL);
         }

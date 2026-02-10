@@ -1,12 +1,12 @@
 package com.networknt.model.openaiofficial;
 
-import static com.networknt.internal.Utils.copy;
-import static com.networknt.internal.Utils.getOrDefault;
+import static com.networknt.agent.internal.Utils.copy;
+import static com.networknt.agent.internal.Utils.getOrDefault;
 
 import com.openai.models.ChatModel;
-import com.networknt.Experimental;
-import com.networknt.model.chat.request.ChatRequestParameters;
-import com.networknt.model.chat.request.DefaultChatRequestParameters;
+import com.networknt.agent.Experimental;
+import com.networknt.agent.model.chat.request.ChatRequestParameters;
+import com.networknt.agent.model.chat.request.DefaultChatRequestParameters;
 import java.util.Map;
 import java.util.Objects;
 

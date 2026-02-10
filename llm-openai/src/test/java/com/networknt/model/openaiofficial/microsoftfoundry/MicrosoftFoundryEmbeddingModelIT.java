@@ -4,12 +4,12 @@ import static com.networknt.model.openaiofficial.microsoftfoundry.InternalMicros
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.networknt.data.embedding.Embedding;
-import com.networknt.data.segment.TextSegment;
-import com.networknt.model.embedding.EmbeddingModel;
+import com.networknt.agent.data.embedding.Embedding;
+import com.networknt.agent.data.segment.TextSegment;
+import com.networknt.agent.model.embedding.EmbeddingModel;
 import com.networknt.model.openaiofficial.OpenAiOfficialEmbeddingModel;
-import com.networknt.model.output.Response;
-import com.networknt.model.output.TokenUsage;
+import com.networknt.agent.model.output.Response;
+import com.networknt.agent.model.output.TokenUsage;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
@@ -18,7 +18,7 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 @EnabledIfEnvironmentVariable(named = "MICROSOFT_FOUNDRY_API_KEY", matches = ".+")
 class MicrosoftFoundryEmbeddingModelIT {
 
-    protected List<com.networknt.model.embedding.EmbeddingModel> models() {
+    protected List<com.networknt.agent.model.embedding.EmbeddingModel> models() {
         return InternalMicrosoftFoundryTestHelper.embeddingModels();
     }
 

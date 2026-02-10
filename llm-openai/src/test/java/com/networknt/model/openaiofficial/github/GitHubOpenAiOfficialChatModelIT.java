@@ -2,15 +2,15 @@ package com.networknt.model.openaiofficial.github;
 
 import static com.networknt.model.openaiofficial.github.InternalGitHubOpenAiOfficialTestHelper.CHAT_MODEL_NAME_ALTERNATE;
 
-import com.networknt.model.chat.ChatModel;
-import com.networknt.model.chat.common.AbstractChatModelIT;
-import com.networknt.model.chat.request.ChatRequestParameters;
-import com.networknt.model.chat.response.ChatResponseMetadata;
+import com.networknt.agent.model.chat.ChatModel;
+import com.networknt.agent.model.chat.common.AbstractChatModelIT;
+import com.networknt.agent.model.chat.request.ChatRequestParameters;
+import com.networknt.agent.model.chat.response.ChatResponseMetadata;
 import com.networknt.model.openaiofficial.OpenAiOfficialChatModel;
 import com.networknt.model.openaiofficial.OpenAiOfficialChatRequestParameters;
 import com.networknt.model.openaiofficial.OpenAiOfficialChatResponseMetadata;
 import com.networknt.model.openaiofficial.OpenAiOfficialTokenUsage;
-import com.networknt.model.output.TokenUsage;
+import com.networknt.agent.model.output.TokenUsage;
 import java.util.List;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 

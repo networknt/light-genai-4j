@@ -1,9 +1,9 @@
 package com.networknt.model.openaiofficial;
 
-import static com.networknt.internal.ValidationUtils.ensureNotNull;
+import static com.networknt.agent.internal.ValidationUtils.ensureNotNull;
 
 import com.openai.core.http.AsyncStreamResponse;
-import com.networknt.model.chat.response.StreamingHandle;
+import com.networknt.agent.model.chat.response.StreamingHandle;
 
 /**
  * @since 1.8.0

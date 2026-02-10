@@ -2,8 +2,8 @@ package com.networknt.model.openaiofficial.openai;
 
 import static com.networknt.model.openaiofficial.openai.InternalOpenAiOfficialTestHelper.OPEN_AI_CHAT_MODEL_JSON_WITH_STRICT_SCHEMA;
 
-import com.networknt.model.chat.ChatModel;
-import com.networknt.service.common.AbstractAiServiceWithJsonSchemaIT;
+import com.networknt.agent.model.chat.ChatModel;
+import com.networknt.agent.service.common.AbstractAiServiceWithJsonSchemaIT;
 import java.util.List;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 

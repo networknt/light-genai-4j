@@ -1,7 +1,7 @@
 package com.networknt.model.openaiofficial;
 
-import com.networknt.Experimental;
-import com.networknt.model.chat.response.ChatResponseMetadata;
+import com.networknt.agent.Experimental;
+import com.networknt.agent.model.chat.response.ChatResponseMetadata;
 import java.util.Objects;
 
 @Experimental
