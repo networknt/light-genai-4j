@@ -35,6 +35,17 @@
         <module>ployglot-executor</module>
         <module>llm-openai</module>
         <module>llm-ollama</module>
+        <module>embeddings/embedding-core</module>
+        <module>embeddings/bge-small-en</module>
+        <module>embeddings/bge-small-en-q</module>
+        <module>embeddings/bge-small-en-v15</module>
+        <module>embeddings/bge-small-en-v15-q</module>
+        <module>embeddings/bge-small-zh-v15</module>
+        <module>embeddings/bge-small-zh-v15-q</module>
+        <module>embeddings/e5-small-v2</module>
+        <module>embeddings/e5-small-v2-q</module>
+        <module>embeddings/all-minilm-l6-v2</module>
+        <module>embeddings/all-minilm-l6-v2-q</module>
     </modules>
 
     <licenses>
@@ -211,6 +222,21 @@
             <dependency>
                 <groupId>com.networknt</groupId>
                 <artifactId>genai-websocket-handler</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.networknt</groupId>
+                <artifactId>embedding-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.networknt</groupId>
+                <artifactId>bge-small-en-v15</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.networknt</groupId>
+                <artifactId>bge-small-en-v15-q</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
