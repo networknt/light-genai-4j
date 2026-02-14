@@ -3,7 +3,7 @@ package com.networknt.genai.openai;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.client.Http2Client;
-import com.networknt.client.simplepool.SimpleConnectionHolder;
+import com.networknt.client.simplepool.SimpleConnectionState;
 import com.networknt.config.Config;
 import com.networknt.genai.GenAiClient;
 import io.undertow.client.ClientConnection;
@@ -44,7 +44,7 @@ public class OpenAiClient implements GenAiClient {
 
     public String chat(String model, java.util.List<com.networknt.genai.ChatMessage> messages) {
         String result = null;
-        SimpleConnectionHolder.ConnectionToken connectionToken = null;
+        SimpleConnectionState.ConnectionToken connectionToken = null;
         try {
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("model", model);
@@ -103,7 +103,7 @@ public class OpenAiClient implements GenAiClient {
     public void chatStream(java.util.List<com.networknt.genai.ChatMessage> messages,
             RequestOptions options,
             com.networknt.genai.StreamCallback callback) {
-        SimpleConnectionHolder.ConnectionToken connectionToken = null;
+        SimpleConnectionState.ConnectionToken connectionToken = null;
         try {
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("model", options.getModel() != null ? options.getModel() : config.getModel());
@@ -116,7 +116,7 @@ public class OpenAiClient implements GenAiClient {
                     Http2Client.BUFFER_POOL, OptionMap.EMPTY);
             ClientConnection connection = (ClientConnection) connectionToken.getRawConnection();
 
-            final SimpleConnectionHolder.ConnectionToken finalToken = connectionToken;
+            final SimpleConnectionState.ConnectionToken finalToken = connectionToken;
             com.networknt.genai.StreamCallback wrappedCallback = new com.networknt.genai.StreamCallback() {
                 @Override
                 public void onEvent(String content) {
