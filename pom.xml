@@ -112,6 +112,9 @@
         <version.graalvm>25.0.2</version.graalvm>
         <version.mockito>5.21.0</version.mockito>
         <version.ollama>1.21.4</version.ollama>
+        <version.jtokkit>1.1.0</version.jtokkit>
+        <version.ai-mocks>0.4.6</version.ai-mocks>
+
         <version.maven-compiler>3.13.0</version.maven-compiler>
         <version.maven-surefire>3.5.2</version.maven-surefire>
         <version.maven-source>3.3.1</version.maven-source>
@@ -242,6 +245,11 @@
                 <artifactId>bge-small-en-v15-q</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.knuddels</groupId>
+                <artifactId>jtokkit</artifactId>
+                <version>${version.jtokkit}</version>
+            </dependency>
 
             <!-- Test Dependencies -->
             <dependency>
@@ -292,6 +300,13 @@
                 <version>${version.mockito}</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>me.kpavlov.aimocks</groupId>
+                <artifactId>ai-mocks-openai-jvm</artifactId>
+                <version>${version.ai-mocks}</version>
+                <scope>test</scope>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 

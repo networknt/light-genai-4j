@@ -1,0 +1,185 @@
+package com.networknt.genai.model.openai;
+
+import com.networknt.genai.Experimental;
+import com.networknt.genai.http.client.HttpClientBuilder;
+import com.networknt.genai.model.ModelProvider;
+import com.networknt.genai.model.audio.AudioTranscriptionModel;
+import com.networknt.genai.model.audio.AudioTranscriptionRequest;
+import com.networknt.genai.model.audio.AudioTranscriptionResponse;
+import com.networknt.genai.model.openai.internal.OpenAiClient;
+import com.networknt.genai.model.openai.internal.ParsedAndRawResponse;
+import com.networknt.genai.model.openai.internal.audio.transcription.OpenAiAudioTranscriptionRequest;
+import com.networknt.genai.model.openai.internal.audio.transcription.OpenAiAudioTranscriptionResponse;
+import com.networknt.genai.model.openai.internal.audio.transcription.AudioFile;
+import com.networknt.genai.model.openai.spi.OpenAiAudioTranscriptionModelBuilderFactory;
+import org.slf4j.Logger;
+
+import java.time.Duration;
+
+import static com.networknt.genai.internal.RetryUtils.withRetryMappingExceptions;
+import static com.networknt.genai.internal.Utils.getOrDefault;
+import static com.networknt.genai.model.ModelProvider.OPEN_AI;
+import static com.networknt.genai.model.openai.internal.OpenAiUtils.DEFAULT_OPENAI_URL;
+import static com.networknt.genai.model.openai.internal.OpenAiUtils.DEFAULT_USER_AGENT;
+import static com.networknt.genai.spi.ServiceHelper.loadFactories;
+import static java.time.Duration.ofSeconds;
+
+/**
+ * Represents an OpenAI audio model with a transcription interface, only gpt-4o-transcribe,
+ * gpt-4o-mini-transcribe, whisper-1 (which is powered by our open source Whisper V2 model),
+ * and gpt-4o-transcribe-diarize are supported. <br/>
+ * You can find description of parameters
+ * <a href="https://platform.openai.com/docs/api-reference/audio/createTranscription">here</a>.
+ *
+ * @since 1.10.0
+ */
+@Experimental
+public class OpenAiAudioTranscriptionModel implements AudioTranscriptionModel {
+
+    private final OpenAiClient client;
+    private final int maxRetries;
+    private final String modelName;
+
+    public OpenAiAudioTranscriptionModel(Builder builder) {
+        this.client = OpenAiClient.builder()
+                .httpClientBuilder(builder.httpClientBuilder)
+                .baseUrl(getOrDefault(builder.baseUrl, DEFAULT_OPENAI_URL))
+                .apiKey(builder.apiKey)
+                .organizationId(builder.organizationId)
+                .projectId(builder.projectId)
+                .connectTimeout(getOrDefault(builder.timeout, ofSeconds(15)))
+                .readTimeout(getOrDefault(builder.timeout, ofSeconds(60)))
+                .logRequests(getOrDefault(builder.logRequests, false))
+                .logResponses(getOrDefault(builder.logResponses, false))
+                .logger(builder.logger)
+                .userAgent(DEFAULT_USER_AGENT)
+                .build();
+        this.maxRetries = getOrDefault(builder.maxRetries, 2);
+        this.modelName = builder.modelName;
+    }
+
+    @Override
+    public AudioTranscriptionResponse transcribe(AudioTranscriptionRequest audioRequest) {
+        if (audioRequest == null || audioRequest.audio() == null) {
+            throw new IllegalArgumentException("Request and audio are required");
+        }
+
+        OpenAiAudioTranscriptionRequest openAiRequest = requestBuilder(audioRequest).build();
+
+        ParsedAndRawResponse<OpenAiAudioTranscriptionResponse> parsedAndRawResponse = withRetryMappingExceptions(
+                () -> client.audioTranscription(openAiRequest).executeRaw(), maxRetries);
+
+        OpenAiAudioTranscriptionResponse openAiResponse = parsedAndRawResponse.parsedResponse();
+
+        return AudioTranscriptionResponse.from(openAiResponse.text());
+    }
+
+    private OpenAiAudioTranscriptionRequest.Builder requestBuilder(AudioTranscriptionRequest request) {
+        return OpenAiAudioTranscriptionRequest.builder()
+                .model(modelName)
+                .file(AudioFile.from(request.audio()))
+                .language(request.language())
+                .prompt(request.prompt())
+                .temperature(request.temperature());
+    }
+
+    @Override
+    public ModelProvider provider() {
+        return OPEN_AI;
+    }
+
+    public static Builder builder() {
+        for (OpenAiAudioTranscriptionModelBuilderFactory factory : loadFactories(OpenAiAudioTranscriptionModelBuilderFactory.class)) {
+            return factory.get();
+        }
+        return new Builder();
+    }
+
+    public static class Builder {
+
+        private HttpClientBuilder httpClientBuilder;
+        private String baseUrl;
+        private String apiKey;
+        private String organizationId;
+        private String projectId;
+        private String modelName;
+
+        private Duration timeout;
+        private Integer maxRetries;
+        private Boolean logRequests;
+        private Boolean logResponses;
+        private Logger logger;
+
+        public Builder() {
+            // This is public so it can be extended
+        }
+
+        public Builder httpClientProvider(HttpClientBuilder httpClientProvider) {
+            this.httpClientBuilder = httpClientProvider;
+            return this;
+        }
+
+        public Builder baseUrl(String baseUrl) {
+            this.baseUrl = baseUrl;
+            return this;
+        }
+
+        public Builder organizationId(String organizationId) {
+            this.organizationId = organizationId;
+            return this;
+        }
+
+        public Builder projectId(String projectId) {
+            this.projectId = projectId;
+            return this;
+        }
+
+        public Builder apiKey(String apiKey) {
+            this.apiKey = apiKey;
+            return this;
+        }
+
+        public Builder modelName(OpenAiAudioTranscriptionModelName modelName) {
+            this.modelName = modelName.toString();
+            return this;
+        }
+
+        public Builder modelName(String modelName) {
+            this.modelName = modelName;
+            return this;
+        }
+
+        public Builder timeout(Duration timeout) {
+            this.timeout = timeout;
+            return this;
+        }
+
+        public Builder maxRetries(Integer maxRetries) {
+            this.maxRetries = maxRetries;
+            return this;
+        }
+
+        public Builder logRequests(Boolean logRequests) {
+            this.logRequests = logRequests;
+            return this;
+        }
+
+        public Builder logResponses(Boolean logResponses) {
+            this.logResponses = logResponses;
+            return this;
+        }
+
+        /**
+         * @param logger an alternate {@link Logger} to be used instead of the default one provided by Langchain4J for logging requests and responses.
+         * @return {@code this}.
+         */
+        public Builder logger(Logger logger) {
+            this.logger = logger;
+            return this;
+        }
+
+        public OpenAiAudioTranscriptionModel build() {
+            return new OpenAiAudioTranscriptionModel(this);
+        }
+    }
+}
