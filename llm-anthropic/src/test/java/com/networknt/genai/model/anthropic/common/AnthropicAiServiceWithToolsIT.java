@@ -1,0 +1,172 @@
+package com.networknt.genai.model.anthropic.common;
+
+import com.networknt.genai.tool.P;
+import com.networknt.genai.tool.Tool;
+import com.networknt.genai.client.MockHttpClientBuilder;
+import com.networknt.genai.client.SpyingHttpClient;
+import com.networknt.genai.client.jdk.JdkHttpClient;
+import com.networknt.genai.model.anthropic.AnthropicChatModel;
+import com.networknt.genai.model.anthropic.AnthropicServerTool;
+import com.networknt.genai.model.chat.ChatModel;
+import com.networknt.genai.service.AiServices;
+import com.networknt.genai.service.SystemMessage;
+import com.networknt.genai.service.common.AbstractAiServiceWithToolsIT;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+
+import java.util.List;
+
+import static com.networknt.genai.model.anthropic.AnthropicChatModelName.CLAUDE_3_5_HAIKU_20241022;
+import static com.networknt.genai.model.anthropic.AnthropicChatModelName.CLAUDE_SONNET_4_5_20250929;
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+
+@EnabledIfEnvironmentVariable(named = "ANTHROPIC_API_KEY", matches = ".+")
+class AnthropicAiServiceWithToolsIT extends AbstractAiServiceWithToolsIT {
+
+    @Override
+    protected List<ChatModel> models() {
+        return singletonList(AnthropicChatModel.builder()
+                .apiKey(System.getenv("ANTHROPIC_API_KEY"))
+                .modelName(CLAUDE_3_5_HAIKU_20241022)
+                .temperature(0.0)
+                .logRequests(true)
+                .logResponses(true)
+                .build());
+    }
+
+    @Test
+    void should_support_tool_search_tool() {
+
+        // given
+        AnthropicServerTool toolSearchTool = AnthropicServerTool.builder()
+                .type("tool_search_tool_regex_20251119")
+                .name("tool_search_tool_regex")
+                .build();
+
+        class Tools {
+
+            @Tool(metadata = "{\"defer_loading\": true}")
+            String getWeather(String location) {
+                return "sunny";
+            }
+
+            @Tool
+            String getTime(String location) {
+                return "12:34:56";
+            }
+        }
+
+        SpyingHttpClient spyingHttpClient = new SpyingHttpClient(JdkHttpClient.builder().build());
+
+        String deferLoadingKey = "defer_loading";
+
+        ChatModel chatModel = AnthropicChatModel.builder()
+                .httpClientBuilder(new MockHttpClientBuilder(spyingHttpClient))
+                .apiKey(System.getenv("ANTHROPIC_API_KEY"))
+                .modelName(CLAUDE_SONNET_4_5_20250929)
+                .beta("advanced-tool-use-2025-11-20")
+                .serverTools(toolSearchTool)
+                .toolMetadataKeysToSend(deferLoadingKey)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+        interface Assistant {
+
+            @SystemMessage("Use tool search if needed")
+            String chat(String userMessage);
+        }
+
+        Tools tools = spy(new Tools());
+
+        Assistant assistant = AiServices.builder(Assistant.class)
+                .chatModel(chatModel)
+                .tools(tools)
+                .build();
+
+        // when
+        assistant.chat("What is the weather in Munich?");
+
+        // then
+        assertThat(spyingHttpClient.requests().get(0).body())
+                .contains(toolSearchTool.type())
+                .contains(deferLoadingKey);
+
+        verify(tools).getWeather("Munich");
+        verifyNoMoreInteractions(tools);
+    }
+
+    @Test
+    void should_support_tool_use_examples() {
+
+        // given
+        enum Unit {
+            CELSIUS, FAHRENHEIT
+        }
+
+        class Tools {
+
+            public static final String TOOL_METADATA = """
+                    {
+                        "input_examples": [
+                            {
+                                "arg0": "San Francisco, CA",
+                                "arg1": "FAHRENHEIT"
+                            },
+                            {
+                                "arg0": "Tokyo, Japan",
+                                "arg1": "CELSIUS"
+                            },
+                            {
+                                "arg0": "New York, NY"
+                            }
+                        ]
+                    }
+                    """;
+
+            @Tool(metadata = TOOL_METADATA)
+            String getWeather(String location, @P(value = "temperature unit", required = false) Unit unit) {
+                return "sunny";
+            }
+        }
+
+        SpyingHttpClient spyingHttpClient = new SpyingHttpClient(JdkHttpClient.builder().build());
+
+        ChatModel chatModel = AnthropicChatModel.builder()
+                .httpClientBuilder(new MockHttpClientBuilder(spyingHttpClient))
+                .apiKey(System.getenv("ANTHROPIC_API_KEY"))
+                .modelName(CLAUDE_SONNET_4_5_20250929)
+                .beta("advanced-tool-use-2025-11-20")
+                .toolMetadataKeysToSend("input_examples")
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+        interface Assistant {
+
+            String chat(String userMessage);
+        }
+
+        Tools tools = spy(new Tools());
+
+        Assistant assistant = AiServices.builder(Assistant.class)
+                .chatModel(chatModel)
+                .tools(tools)
+                .build();
+
+        // when
+        assistant.chat("What is the weather in Munich in Fahrenheit?");
+
+        // then
+        assertThat(spyingHttpClient.requests().get(0).body()).contains("input_examples");
+
+        verify(tools).getWeather(argThat(location -> location.contains("Munich")), eq(Unit.FAHRENHEIT));
+        verifyNoMoreInteractions(tools);
+    }
+}

@@ -27,6 +27,8 @@
         <module>agent-service</module>
         <module>judge0-executor</module>
         <module>ployglot-executor</module>
+        <module>llm-anthropic</module>
+        <module>llm-openai-azure</module>
         <module>llm-openai</module>
         <module>llm-openai-official</module>
         <module>llm-ollama</module>
@@ -114,6 +116,8 @@
         <version.ollama>1.21.4</version.ollama>
         <version.jtokkit>1.1.0</version.jtokkit>
         <version.ai-mocks>0.4.6</version.ai-mocks>
+        <version.azure-identity>1.14.0</version.azure-identity>
+        <version.log4j>2.24.3</version.log4j>
 
         <version.maven-compiler>3.13.0</version.maven-compiler>
         <version.maven-surefire>3.5.2</version.maven-surefire>
@@ -250,6 +254,12 @@
                 <artifactId>jtokkit</artifactId>
                 <version>${version.jtokkit}</version>
             </dependency>
+            <dependency>
+                <groupId>com.azure</groupId>
+                <artifactId>azure-identity</artifactId>
+                <version>${version.azure-identity}</version>
+                <optional>true</optional>
+            </dependency>
 
             <!-- Test Dependencies -->
             <dependency>
@@ -304,6 +314,32 @@
                 <groupId>me.kpavlov.aimocks</groupId>
                 <artifactId>ai-mocks-openai-jvm</artifactId>
                 <version>${version.ai-mocks}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>me.kpavlov.aimocks</groupId>
+                <artifactId>ai-mocks-anthropic-jvm</artifactId>
+                <version>${version.ai-mocks}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-api</artifactId>
+                <version>${version.log4j}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>${version.log4j}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-slf4j2-impl</artifactId>
+                <version>${version.log4j}</version>
                 <scope>test</scope>
             </dependency>
 
