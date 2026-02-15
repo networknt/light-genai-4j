@@ -1,14 +1,14 @@
-package com.networknt.agent.service;
+package com.networknt.genai.service;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.networknt.agent.tool.P;
-import com.networknt.agent.tool.Tool;
-import com.networknt.agent.tool.ToolSpecification;
-import com.networknt.agent.model.chat.ChatModel;
-import com.networknt.agent.model.chat.request.ChatRequest;
-import com.networknt.agent.model.chat.request.json.JsonObjectSchema;
-import com.networknt.agent.model.chat.request.json.JsonSchemaElement;
-import com.networknt.agent.model.openai.OpenAiChatModel;
+import com.networknt.genai.tool.P;
+import com.networknt.genai.tool.Tool;
+import com.networknt.genai.tool.ToolSpecification;
+import com.networknt.genai.model.chat.ChatModel;
+import com.networknt.genai.model.chat.request.ChatRequest;
+import com.networknt.genai.model.chat.request.json.JsonObjectSchema;
+import com.networknt.genai.model.chat.request.json.JsonSchemaElement;
+import com.networknt.genai.model.openai.OpenAiChatModel;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,8 +19,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
-import static com.networknt.agent.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
-import static com.networknt.agent.service.AiServicesIT.verifyNoMoreInteractionsFor;
+import static com.networknt.genai.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
+import static com.networknt.genai.service.AiServicesIT.verifyNoMoreInteractionsFor;
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;

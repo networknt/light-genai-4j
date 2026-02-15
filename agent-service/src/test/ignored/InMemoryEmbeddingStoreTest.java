@@ -1,17 +1,17 @@
-package com.networknt.agent.store.embedding.inmemory;
+package com.networknt.genai.store.embedding.inmemory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import com.networknt.agent.data.document.Metadata;
-import com.networknt.agent.data.embedding.Embedding;
-import com.networknt.agent.data.segment.TextSegment;
-import com.networknt.agent.model.embedding.EmbeddingModel;
-import com.networknt.agent.model.embedding.onnx.allminilml6v2q.AllMiniLmL6V2QuantizedEmbeddingModel;
-import com.networknt.agent.store.embedding.EmbeddingMatch;
-import com.networknt.agent.store.embedding.EmbeddingSearchRequest;
-import com.networknt.agent.store.embedding.EmbeddingStore;
-import com.networknt.agent.store.embedding.EmbeddingStoreWithFilteringIT;
+import com.networknt.genai.data.document.Metadata;
+import com.networknt.genai.data.embedding.Embedding;
+import com.networknt.genai.data.segment.TextSegment;
+import com.networknt.genai.model.embedding.EmbeddingModel;
+import com.networknt.genai.model.embedding.onnx.allminilml6v2q.AllMiniLmL6V2QuantizedEmbeddingModel;
+import com.networknt.genai.store.embedding.EmbeddingMatch;
+import com.networknt.genai.store.embedding.EmbeddingSearchRequest;
+import com.networknt.genai.store.embedding.EmbeddingStore;
+import com.networknt.genai.store.embedding.EmbeddingStoreWithFilteringIT;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.List;

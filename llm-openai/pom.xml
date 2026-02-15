@@ -2,29 +2,25 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <artifactId>light-genai-4j</artifactId>
         <groupId>com.networknt</groupId>
         <version>2.3.3-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
     <artifactId>llm-openai</artifactId>
     <packaging>jar</packaging>
     <name>llm-openai</name>
-    <description>OpenAI integration for Light-GenAI-4j (Compatible with LangChain4j)</description>
+    <description>OpenAI integration for Light-GenAI-4j with openai rest API</description>
 
     <properties>
-        <openai-java.version>4.17.0</openai-java.version> <!-- Using a recent version, verify if property needs to be defined here or inherited -->
-        <langchain4j.version>0.35.0</langchain4j.version> <!-- Check langchain4j version in parent or define here -->
+        <openai-java.version>4.17.0</openai-java.version>
+        <langchain4j.version>0.35.0</langchain4j.version>
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-core</artifactId>
-            <version>${langchain4j.version}</version>
-        </dependency>
         <dependency>
             <groupId>com.openai</groupId>
             <artifactId>openai-java</artifactId>
@@ -32,7 +28,7 @@
         </dependency>
         <dependency>
             <groupId>com.networknt</groupId>
-            <artifactId>agent-core</artifactId>
+            <artifactId>genai-core</artifactId>
         </dependency>
         <dependency>
             <groupId>com.azure</groupId>
@@ -52,7 +48,7 @@
 
         <dependency>
             <groupId>com.networknt</groupId>
-            <artifactId>agent-core</artifactId>
+            <artifactId>genai-core</artifactId>
             <version>2.3.3-SNAPSHOT</version>
             <classifier>tests</classifier>
             <type>test-jar</type>

@@ -1,18 +1,18 @@
-package com.networknt.agent.service;
+package com.networknt.genai.service;
 
-import static com.networknt.agent.model.openai.internal.OpenAiUtils.aiMessageFrom;
+import static com.networknt.genai.model.openai.internal.OpenAiUtils.aiMessageFrom;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-import com.networknt.agent.tool.ToolExecutionRequest;
-import com.networknt.agent.data.message.AiMessage;
-import com.networknt.agent.model.moderation.Moderation;
-import com.networknt.agent.model.openai.internal.chat.AssistantMessage;
-import com.networknt.agent.model.openai.internal.chat.ChatCompletionChoice;
-import com.networknt.agent.model.openai.internal.chat.ChatCompletionResponse;
-import com.networknt.agent.model.openai.internal.chat.FunctionCall;
+import com.networknt.genai.tool.ToolExecutionRequest;
+import com.networknt.genai.data.message.AiMessage;
+import com.networknt.genai.model.moderation.Moderation;
+import com.networknt.genai.model.openai.internal.chat.AssistantMessage;
+import com.networknt.genai.model.openai.internal.chat.ChatCompletionChoice;
+import com.networknt.genai.model.openai.internal.chat.ChatCompletionResponse;
+import com.networknt.genai.model.openai.internal.chat.FunctionCall;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;

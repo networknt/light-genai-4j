@@ -1,9 +1,9 @@
 package com.networknt.genai.executor.judge0;
 
-import com.networknt.agent.tool.P;
-import com.networknt.agent.tool.Tool;
+import com.networknt.genai.tool.P;
+import com.networknt.genai.tool.Tool;
 import com.networknt.genai.executor.judge0.Judge0JavaScriptEngine;
-import static com.networknt.agent.internal.Utils.isNullOrBlank;
+import static com.networknt.genai.internal.Utils.isNullOrBlank;
 import static com.networknt.genai.executor.judge0.JavaScriptCodeFixer.fixIfNoLogToConsole;
 import java.time.Duration;
 import java.util.Objects;

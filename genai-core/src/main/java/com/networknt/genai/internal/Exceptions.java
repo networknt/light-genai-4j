@@ -1,0 +1,53 @@
+package com.networknt.genai.internal;
+
+import com.networknt.genai.Internal;
+
+/**
+ * Utility methods for creating common exceptions.
+ */
+@Internal
+public class Exceptions {
+
+    private Exceptions() {}
+
+    /**
+     * Constructs an {@link IllegalArgumentException} with the given formatted result.
+     *
+     * <p>Equivalent to {@code new IllegalArgumentException(String.format(format, args))}.
+     *
+     * @param format the format string
+     * @param args the format arguments
+     * @return the constructed exception.
+     */
+    public static IllegalArgumentException illegalArgument(String format, Object... args) {
+        return new IllegalArgumentException(format.formatted(args));
+    }
+
+    /**
+     * Constructs an {@link RuntimeException} with the given formatted result.
+     *
+     * <p>Equivalent to {@code new RuntimeException(String.format(format, args))}.
+     *
+     * @param format the format string
+     * @param args the format arguments
+     * @return the constructed exception.
+     */
+    public static RuntimeException runtime(String format, Object... args) {
+        return new RuntimeException(format.formatted(args));
+    }
+
+    /**
+     * Unwraps a {@link RuntimeException} to its cause if it is a generic {@link RuntimeException}.
+     *
+     * @param e the exception to unwrap
+     * @return the unwrapped cause or the original exception
+     */
+    public static Throwable unwrapRuntimeException(Exception e) {
+        if (e.getClass() == RuntimeException.class && e.getCause() != null) {
+            // when checked exception (e.g., JsonProcessingException) is wrapped into RuntimeException
+            return e.getCause();
+        } else {
+            return e;
+        }
+    }
+}

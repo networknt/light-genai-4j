@@ -21,7 +21,7 @@
 
         <dependency>
             <groupId>com.networknt</groupId>
-            <artifactId>agent-core</artifactId>
+            <artifactId>genai-core</artifactId>
         </dependency>
 
         <dependency>
@@ -36,7 +36,7 @@
             <version>${ai.djl.version}</version>
             <exclusions>
                 <exclusion>
-                    <!-- due to version conflict between com.networknt:agent-core and ai.djl:api -->
+                    <!-- due to version conflict between com.networknt.genai-core and ai.djl:api -->
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-api</artifactId>
                 </exclusion>

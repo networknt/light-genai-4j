@@ -16,8 +16,7 @@
 
         <dependency>
             <groupId>com.networknt</groupId>
-            <artifactId>agent-core</artifactId>
-            <version>${project.version}</version>
+            <artifactId>genai-core</artifactId>
         </dependency>
 
         <dependency>

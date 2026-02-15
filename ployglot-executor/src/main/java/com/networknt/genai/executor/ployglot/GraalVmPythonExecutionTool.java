@@ -1,8 +1,8 @@
 package com.networknt.genai.executor.ployglot;
 
-import com.networknt.agent.tool.P;
-import com.networknt.agent.tool.Tool;
-import com.networknt.agent.code.CodeExecutionEngine;
+import com.networknt.genai.tool.P;
+import com.networknt.genai.tool.Tool;
+import com.networknt.genai.code.CodeExecutionEngine;
 
 
 /**

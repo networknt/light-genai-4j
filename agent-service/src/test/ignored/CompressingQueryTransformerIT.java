@@ -1,17 +1,17 @@
-package com.networknt.agent.rag.query.transformer;
+package com.networknt.genai.rag.query.transformer;
 
-import static com.networknt.agent.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
+import static com.networknt.genai.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.networknt.agent.data.message.AiMessage;
-import com.networknt.agent.data.message.ChatMessage;
-import com.networknt.agent.data.message.SystemMessage;
-import com.networknt.agent.data.message.UserMessage;
-import com.networknt.agent.model.chat.ChatModel;
-import com.networknt.agent.model.openai.OpenAiChatModel;
-import com.networknt.agent.rag.query.Metadata;
-import com.networknt.agent.rag.query.Query;
+import com.networknt.genai.data.message.AiMessage;
+import com.networknt.genai.data.message.ChatMessage;
+import com.networknt.genai.data.message.SystemMessage;
+import com.networknt.genai.data.message.UserMessage;
+import com.networknt.genai.model.chat.ChatModel;
+import com.networknt.genai.model.openai.OpenAiChatModel;
+import com.networknt.genai.rag.query.Metadata;
+import com.networknt.genai.rag.query.Query;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;

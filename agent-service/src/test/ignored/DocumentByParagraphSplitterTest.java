@@ -1,20 +1,20 @@
-package com.networknt.agent.data.document.splitter;
+package com.networknt.genai.data.document.splitter;
 
-import com.networknt.agent.data.document.Document;
-import com.networknt.agent.data.document.DocumentSplitter;
-import com.networknt.agent.data.document.Metadata;
-import com.networknt.agent.data.segment.TextSegment;
-import com.networknt.agent.model.TokenCountEstimator;
-import com.networknt.agent.model.openai.OpenAiTokenCountEstimator;
+import com.networknt.genai.data.document.Document;
+import com.networknt.genai.data.document.DocumentSplitter;
+import com.networknt.genai.data.document.Metadata;
+import com.networknt.genai.data.segment.TextSegment;
+import com.networknt.genai.model.TokenCountEstimator;
+import com.networknt.genai.model.openai.OpenAiTokenCountEstimator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
 
-import static com.networknt.agent.data.document.Metadata.metadata;
-import static com.networknt.agent.data.segment.TextSegment.textSegment;
-import static com.networknt.agent.model.openai.OpenAiChatModelName.GPT_3_5_TURBO;
+import static com.networknt.genai.data.document.Metadata.metadata;
+import static com.networknt.genai.data.segment.TextSegment.textSegment;
+import static com.networknt.genai.model.openai.OpenAiChatModelName.GPT_3_5_TURBO;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 

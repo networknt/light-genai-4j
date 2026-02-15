@@ -1,20 +1,20 @@
-package com.networknt.agent.service;
+package com.networknt.genai.service;
 
-import static com.networknt.agent.internal.RetryUtils.DEFAULT_RETRY_POLICY;
-import static com.networknt.agent.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
+import static com.networknt.genai.internal.RetryUtils.DEFAULT_RETRY_POLICY;
+import static com.networknt.genai.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.networknt.agent.data.message.AiMessage;
-import com.networknt.agent.exception.AuthenticationException;
-import com.networknt.agent.exception.HttpException;
-import com.networknt.agent.exception.ModelNotFoundException;
-import com.networknt.agent.exception.RateLimitException;
-import com.networknt.agent.memory.ChatMemory;
-import com.networknt.agent.memory.chat.MessageWindowChatMemory;
-import com.networknt.agent.model.chat.ChatModel;
-import com.networknt.agent.model.chat.mock.ChatModelMock;
-import com.networknt.agent.model.openai.OpenAiChatModel;
+import com.networknt.genai.data.message.AiMessage;
+import com.networknt.genai.exception.AuthenticationException;
+import com.networknt.genai.exception.HttpException;
+import com.networknt.genai.exception.ModelNotFoundException;
+import com.networknt.genai.exception.RateLimitException;
+import com.networknt.genai.memory.ChatMemory;
+import com.networknt.genai.memory.chat.MessageWindowChatMemory;
+import com.networknt.genai.model.chat.ChatModel;
+import com.networknt.genai.model.chat.mock.ChatModelMock;
+import com.networknt.genai.model.openai.OpenAiChatModel;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;

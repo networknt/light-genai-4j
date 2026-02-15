@@ -21,19 +21,14 @@
 
     <modules>
         <module>genai-core</module>
-        <module>genai-ollama</module>
-        <module>genai-bedrock</module>
-        <module>genai-openai</module>
-        <module>genai-gemini</module>
         <module>genai-websocket-handler</module>
-        <module>genai-antigravity</module>
-        <module>agent-core</module>
         <module>agent-client</module>
         <module>jdk-http-client</module>
         <module>agent-service</module>
         <module>judge0-executor</module>
         <module>ployglot-executor</module>
         <module>llm-openai</module>
+        <module>llm-openai-official</module>
         <module>llm-ollama</module>
         <module>embeddings/embedding-core</module>
         <module>embeddings/bge-small-en</module>
@@ -158,8 +153,16 @@
             </dependency>
             <dependency>
                 <groupId>com.networknt</groupId>
-                <artifactId>agent-core</artifactId>
-                <version>${version.light-4j}</version>
+                <artifactId>genai-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.networknt</groupId>
+                <artifactId>genai-core</artifactId>
+                <version>${project.version}</version>
+                <classifier>tests</classifier>
+                <type>test-jar</type>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>com.networknt</groupId>

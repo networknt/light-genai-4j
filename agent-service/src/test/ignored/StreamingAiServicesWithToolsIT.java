@@ -1,9 +1,9 @@
-package com.networknt.agent.service;
+package com.networknt.genai.service;
 
-import static com.networknt.agent.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
-import static com.networknt.agent.service.StreamingAiServicesWithToolsIT.TemperatureUnit.CELSIUS;
-import static com.networknt.agent.service.StreamingAiServicesWithToolsIT.TransactionService.EXPECTED_SPECIFICATION;
-import static com.networknt.agent.service.StreamingAiServicesWithToolsIT.WeatherService.TEMPERATURE;
+import static com.networknt.genai.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
+import static com.networknt.genai.service.StreamingAiServicesWithToolsIT.TemperatureUnit.CELSIUS;
+import static com.networknt.genai.service.StreamingAiServicesWithToolsIT.TransactionService.EXPECTED_SPECIFICATION;
+import static com.networknt.genai.service.StreamingAiServicesWithToolsIT.WeatherService.TEMPERATURE;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -22,30 +22,30 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.networknt.agent.tool.P;
-import com.networknt.agent.tool.Tool;
-import com.networknt.agent.tool.ToolExecutionRequest;
-import com.networknt.agent.tool.ToolSpecification;
-import com.networknt.agent.data.message.AiMessage;
-import com.networknt.agent.data.message.ChatMessage;
-import com.networknt.agent.data.message.ToolExecutionResultMessage;
-import com.networknt.agent.invocation.InvocationContext;
-import com.networknt.agent.invocation.InvocationParameters;
-import com.networknt.agent.memory.ChatMemory;
-import com.networknt.agent.memory.chat.MessageWindowChatMemory;
-import com.networknt.agent.model.chat.StreamingChatModel;
-import com.networknt.agent.model.chat.mock.StreamingChatModelMock;
-import com.networknt.agent.model.chat.request.ChatRequest;
-import com.networknt.agent.model.chat.request.json.JsonObjectSchema;
-import com.networknt.agent.model.chat.response.ChatResponse;
-import com.networknt.agent.model.openai.OpenAiStreamingChatModel;
-import com.networknt.agent.service.tool.ToolArgumentsErrorHandler;
-import com.networknt.agent.service.tool.ToolErrorHandlerResult;
-import com.networknt.agent.service.tool.ToolExecution;
-import com.networknt.agent.service.tool.ToolExecutionErrorHandler;
-import com.networknt.agent.service.tool.ToolExecutor;
-import com.networknt.agent.service.tool.ToolProvider;
-import com.networknt.agent.service.tool.ToolProviderResult;
+import com.networknt.genai.tool.P;
+import com.networknt.genai.tool.Tool;
+import com.networknt.genai.tool.ToolExecutionRequest;
+import com.networknt.genai.tool.ToolSpecification;
+import com.networknt.genai.data.message.AiMessage;
+import com.networknt.genai.data.message.ChatMessage;
+import com.networknt.genai.data.message.ToolExecutionResultMessage;
+import com.networknt.genai.invocation.InvocationContext;
+import com.networknt.genai.invocation.InvocationParameters;
+import com.networknt.genai.memory.ChatMemory;
+import com.networknt.genai.memory.chat.MessageWindowChatMemory;
+import com.networknt.genai.model.chat.StreamingChatModel;
+import com.networknt.genai.model.chat.mock.StreamingChatModelMock;
+import com.networknt.genai.model.chat.request.ChatRequest;
+import com.networknt.genai.model.chat.request.json.JsonObjectSchema;
+import com.networknt.genai.model.chat.response.ChatResponse;
+import com.networknt.genai.model.openai.OpenAiStreamingChatModel;
+import com.networknt.genai.service.tool.ToolArgumentsErrorHandler;
+import com.networknt.genai.service.tool.ToolErrorHandlerResult;
+import com.networknt.genai.service.tool.ToolExecution;
+import com.networknt.genai.service.tool.ToolExecutionErrorHandler;
+import com.networknt.genai.service.tool.ToolExecutor;
+import com.networknt.genai.service.tool.ToolProvider;
+import com.networknt.genai.service.tool.ToolProviderResult;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -1345,7 +1345,7 @@ class StreamingAiServicesWithToolsIT {
         interface Assistant {
 
             TokenStream chat(
-                    @com.networknt.agent.service.UserMessage String userMessage, InvocationParameters invocationParameters);
+                    @com.networknt.genai.service.UserMessage String userMessage, InvocationParameters invocationParameters);
         }
 
         Tools spyTools = spy(new Tools());

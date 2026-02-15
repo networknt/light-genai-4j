@@ -1,8 +1,8 @@
-package com.networknt.agent.rag.query.transformer;
+package com.networknt.genai.rag.query.transformer;
 
-import com.networknt.agent.model.chat.ChatModel;
-import com.networknt.agent.model.openai.OpenAiChatModel;
-import com.networknt.agent.rag.query.Query;
+import com.networknt.genai.model.chat.ChatModel;
+import com.networknt.genai.model.openai.OpenAiChatModel;
+import com.networknt.genai.rag.query.Query;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -11,7 +11,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.util.Collection;
 import java.util.stream.Stream;
 
-import static com.networknt.agent.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
+import static com.networknt.genai.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @EnabledIfEnvironmentVariable(named = "OPENAI_API_KEY", matches = ".+")

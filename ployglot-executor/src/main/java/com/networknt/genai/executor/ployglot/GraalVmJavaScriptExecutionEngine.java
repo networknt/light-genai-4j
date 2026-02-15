@@ -1,6 +1,6 @@
 package com.networknt.genai.executor.ployglot;
 
-import com.networknt.agent.code.CodeExecutionEngine;
+import com.networknt.genai.code.CodeExecutionEngine;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.SandboxPolicy;

@@ -1,6 +1,6 @@
 package com.networknt.genai.executor;
 
-import com.networknt.agent.code.CodeExecutionEngine;
+import com.networknt.genai.code.CodeExecutionEngine;
 import com.networknt.genai.executor.ployglot.GraalVmJavaScriptExecutionEngine;
 import org.junit.jupiter.api.Test;
 

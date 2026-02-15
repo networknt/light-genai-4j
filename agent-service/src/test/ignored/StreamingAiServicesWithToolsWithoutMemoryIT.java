@@ -1,15 +1,15 @@
-package com.networknt.agent.service;
+package com.networknt.genai.service;
 
-import com.networknt.agent.tool.P;
-import com.networknt.agent.tool.Tool;
-import com.networknt.agent.data.message.ChatMessage;
-import com.networknt.agent.data.message.ChatMessageType;
-import com.networknt.agent.data.message.UserMessage;
-import com.networknt.agent.model.chat.StreamingChatModel;
-import com.networknt.agent.model.chat.request.ChatRequest;
-import com.networknt.agent.model.chat.response.ChatResponse;
-import com.networknt.agent.model.openai.OpenAiStreamingChatModel;
-import com.networknt.agent.model.output.TokenUsage;
+import com.networknt.genai.tool.P;
+import com.networknt.genai.tool.Tool;
+import com.networknt.genai.data.message.ChatMessage;
+import com.networknt.genai.data.message.ChatMessageType;
+import com.networknt.genai.data.message.UserMessage;
+import com.networknt.genai.model.chat.StreamingChatModel;
+import com.networknt.genai.model.chat.request.ChatRequest;
+import com.networknt.genai.model.chat.response.ChatResponse;
+import com.networknt.genai.model.openai.OpenAiStreamingChatModel;
+import com.networknt.genai.model.output.TokenUsage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import static com.networknt.agent.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
-import static com.networknt.agent.model.output.FinishReason.STOP;
+import static com.networknt.genai.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
+import static com.networknt.genai.model.output.FinishReason.STOP;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.spy;

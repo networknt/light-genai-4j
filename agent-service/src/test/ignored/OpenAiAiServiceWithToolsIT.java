@@ -1,13 +1,13 @@
-package com.networknt.agent.service.common.openai;
+package com.networknt.genai.service.common.openai;
 
-import com.networknt.agent.model.chat.ChatModel;
-import com.networknt.agent.model.openai.OpenAiChatModel;
-import com.networknt.agent.service.common.AbstractAiServiceWithToolsIT;
+import com.networknt.genai.model.chat.ChatModel;
+import com.networknt.genai.model.openai.OpenAiChatModel;
+import com.networknt.genai.service.common.AbstractAiServiceWithToolsIT;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import java.util.List;
 
-import static com.networknt.agent.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
+import static com.networknt.genai.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 

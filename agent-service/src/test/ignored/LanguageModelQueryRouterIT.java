@@ -1,9 +1,9 @@
-package com.networknt.agent.rag.query.router;
+package com.networknt.genai.rag.query.router;
 
-import com.networknt.agent.model.chat.ChatModel;
-import com.networknt.agent.model.openai.OpenAiChatModel;
-import com.networknt.agent.rag.content.retriever.ContentRetriever;
-import com.networknt.agent.rag.query.Query;
+import com.networknt.genai.model.chat.ChatModel;
+import com.networknt.genai.model.openai.OpenAiChatModel;
+import com.networknt.genai.rag.content.retriever.ContentRetriever;
+import com.networknt.genai.rag.query.Query;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -17,7 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static com.networknt.agent.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
+import static com.networknt.genai.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)

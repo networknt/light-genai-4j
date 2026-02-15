@@ -1,6 +1,6 @@
 package com.networknt.genai.handler;
 
-import com.networknt.genai.ChatMessage;
+import com.networknt.genai.data.message.ChatMessage;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

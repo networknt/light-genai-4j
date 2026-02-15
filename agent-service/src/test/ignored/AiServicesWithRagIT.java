@@ -1,12 +1,12 @@
-package com.networknt.agent.service;
+package com.networknt.genai.service;
 
-import static com.networknt.agent.data.document.Metadata.metadata;
-import static com.networknt.agent.data.document.loader.FileSystemDocumentLoader.loadDocument;
-import static com.networknt.agent.model.openai.OpenAiChatModelName.GPT_3_5_TURBO;
-import static com.networknt.agent.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
-import static com.networknt.agent.rag.query.router.LanguageModelQueryRouter.FallbackStrategy.FAIL;
-import static com.networknt.agent.rag.query.router.LanguageModelQueryRouter.FallbackStrategy.ROUTE_TO_ALL;
-import static com.networknt.agent.store.embedding.filter.MetadataFilterBuilder.metadataKey;
+import static com.networknt.genai.data.document.Metadata.metadata;
+import static com.networknt.genai.data.document.loader.FileSystemDocumentLoader.loadDocument;
+import static com.networknt.genai.model.openai.OpenAiChatModelName.GPT_3_5_TURBO;
+import static com.networknt.genai.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
+import static com.networknt.genai.rag.query.router.LanguageModelQueryRouter.FallbackStrategy.FAIL;
+import static com.networknt.genai.rag.query.router.LanguageModelQueryRouter.FallbackStrategy.ROUTE_TO_ALL;
+import static com.networknt.genai.store.embedding.filter.MetadataFilterBuilder.metadataKey;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -19,42 +19,42 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import com.networknt.agent.data.document.Document;
-import com.networknt.agent.data.document.DocumentSplitter;
-import com.networknt.agent.data.document.parser.TextDocumentParser;
-import com.networknt.agent.data.document.splitter.DocumentSplitters;
-import com.networknt.agent.data.message.AiMessage;
-import com.networknt.agent.data.message.ChatMessage;
-import com.networknt.agent.data.message.UserMessage;
-import com.networknt.agent.data.segment.TextSegment;
-import com.networknt.agent.memory.ChatMemory;
-import com.networknt.agent.memory.chat.MessageWindowChatMemory;
-import com.networknt.agent.model.TokenCountEstimator;
-import com.networknt.agent.model.chat.ChatModel;
-import com.networknt.agent.model.chat.mock.ChatModelMock;
-import com.networknt.agent.model.embedding.EmbeddingModel;
-import com.networknt.agent.model.embedding.onnx.allminilml6v2q.AllMiniLmL6V2QuantizedEmbeddingModel;
-import com.networknt.agent.model.openai.OpenAiChatModel;
-import com.networknt.agent.model.openai.OpenAiTokenCountEstimator;
-import com.networknt.agent.model.output.Response;
-import com.networknt.agent.model.scoring.ScoringModel;
-import com.networknt.agent.rag.DefaultRetrievalAugmentor;
-import com.networknt.agent.rag.content.Content;
-import com.networknt.agent.rag.content.aggregator.ContentAggregator;
-import com.networknt.agent.rag.content.aggregator.ReRankingContentAggregator;
-import com.networknt.agent.rag.content.retriever.ContentRetriever;
-import com.networknt.agent.rag.content.retriever.EmbeddingStoreContentRetriever;
-import com.networknt.agent.rag.query.Query;
-import com.networknt.agent.rag.query.router.LanguageModelQueryRouter;
-import com.networknt.agent.rag.query.router.LanguageModelQueryRouter.FallbackStrategy;
-import com.networknt.agent.rag.query.router.QueryRouter;
-import com.networknt.agent.rag.query.transformer.ExpandingQueryTransformer;
-import com.networknt.agent.rag.query.transformer.QueryTransformer;
-import com.networknt.agent.store.embedding.EmbeddingStore;
-import com.networknt.agent.store.embedding.EmbeddingStoreIngestor;
-import com.networknt.agent.store.embedding.filter.Filter;
-import com.networknt.agent.store.embedding.inmemory.InMemoryEmbeddingStore;
-import com.networknt.agent.store.memory.chat.InMemoryChatMemoryStore;
+import com.networknt.genai.data.document.Document;
+import com.networknt.genai.data.document.DocumentSplitter;
+import com.networknt.genai.data.document.parser.TextDocumentParser;
+import com.networknt.genai.data.document.splitter.DocumentSplitters;
+import com.networknt.genai.data.message.AiMessage;
+import com.networknt.genai.data.message.ChatMessage;
+import com.networknt.genai.data.message.UserMessage;
+import com.networknt.genai.data.segment.TextSegment;
+import com.networknt.genai.memory.ChatMemory;
+import com.networknt.genai.memory.chat.MessageWindowChatMemory;
+import com.networknt.genai.model.TokenCountEstimator;
+import com.networknt.genai.model.chat.ChatModel;
+import com.networknt.genai.model.chat.mock.ChatModelMock;
+import com.networknt.genai.model.embedding.EmbeddingModel;
+import com.networknt.genai.model.embedding.onnx.allminilml6v2q.AllMiniLmL6V2QuantizedEmbeddingModel;
+import com.networknt.genai.model.openai.OpenAiChatModel;
+import com.networknt.genai.model.openai.OpenAiTokenCountEstimator;
+import com.networknt.genai.model.output.Response;
+import com.networknt.genai.model.scoring.ScoringModel;
+import com.networknt.genai.rag.DefaultRetrievalAugmentor;
+import com.networknt.genai.rag.content.Content;
+import com.networknt.genai.rag.content.aggregator.ContentAggregator;
+import com.networknt.genai.rag.content.aggregator.ReRankingContentAggregator;
+import com.networknt.genai.rag.content.retriever.ContentRetriever;
+import com.networknt.genai.rag.content.retriever.EmbeddingStoreContentRetriever;
+import com.networknt.genai.rag.query.Query;
+import com.networknt.genai.rag.query.router.LanguageModelQueryRouter;
+import com.networknt.genai.rag.query.router.LanguageModelQueryRouter.FallbackStrategy;
+import com.networknt.genai.rag.query.router.QueryRouter;
+import com.networknt.genai.rag.query.transformer.ExpandingQueryTransformer;
+import com.networknt.genai.rag.query.transformer.QueryTransformer;
+import com.networknt.genai.store.embedding.EmbeddingStore;
+import com.networknt.genai.store.embedding.EmbeddingStoreIngestor;
+import com.networknt.genai.store.embedding.filter.Filter;
+import com.networknt.genai.store.embedding.inmemory.InMemoryEmbeddingStore;
+import com.networknt.genai.store.memory.chat.InMemoryChatMemoryStore;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -156,7 +156,7 @@ class AiServicesWithRagIT {
 
     interface MultiUserAssistant {
 
-        String answer(@MemoryId int memoryId, @com.networknt.agent.service.UserMessage String query);
+        String answer(@MemoryId int memoryId, @com.networknt.genai.service.UserMessage String query);
     }
 
     @ParameterizedTest
@@ -463,7 +463,7 @@ class AiServicesWithRagIT {
 
     interface PersonalizedAssistant {
 
-        String chat(@MemoryId String userId, @com.networknt.agent.service.UserMessage String userMessage);
+        String chat(@MemoryId String userId, @com.networknt.genai.service.UserMessage String userMessage);
     }
 
     @ParameterizedTest

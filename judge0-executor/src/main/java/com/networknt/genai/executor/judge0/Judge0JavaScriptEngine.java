@@ -1,8 +1,8 @@
 package com.networknt.genai.executor.judge0;
 
-import static com.networknt.agent.internal.Utils.isNullOrBlank;
+import static com.networknt.genai.internal.Utils.isNullOrBlank;
 
-import com.networknt.agent.code.CodeExecutionEngine;
+import com.networknt.genai.code.CodeExecutionEngine;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;

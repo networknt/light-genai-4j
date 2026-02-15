@@ -1,24 +1,24 @@
-package com.networknt.agent.service;
+package com.networknt.genai.service;
 
-import com.networknt.agent.tool.P;
-import com.networknt.agent.tool.Tool;
-import com.networknt.agent.tool.ToolExecutionRequest;
-import com.networknt.agent.data.message.AiMessage;
-import com.networknt.agent.data.message.ChatMessage;
-import com.networknt.agent.data.message.ToolExecutionResultMessage;
-import com.networknt.agent.data.message.UserMessage;
-import com.networknt.agent.memory.ChatMemory;
-import com.networknt.agent.memory.chat.MessageWindowChatMemory;
-import com.networknt.agent.model.chat.StreamingChatModel;
-import com.networknt.agent.model.chat.request.ChatRequestParameters;
-import com.networknt.agent.model.chat.response.ChatResponse;
-import com.networknt.agent.model.chat.response.PartialThinking;
-import com.networknt.agent.model.chat.response.PartialThinkingContext;
-import com.networknt.agent.model.openai.OpenAiStreamingChatModel;
-import com.networknt.agent.model.output.TokenUsage;
-import com.networknt.agent.rag.AugmentationResult;
-import com.networknt.agent.rag.RetrievalAugmentor;
-import com.networknt.agent.rag.content.Content;
+import com.networknt.genai.tool.P;
+import com.networknt.genai.tool.Tool;
+import com.networknt.genai.tool.ToolExecutionRequest;
+import com.networknt.genai.data.message.AiMessage;
+import com.networknt.genai.data.message.ChatMessage;
+import com.networknt.genai.data.message.ToolExecutionResultMessage;
+import com.networknt.genai.data.message.UserMessage;
+import com.networknt.genai.memory.ChatMemory;
+import com.networknt.genai.memory.chat.MessageWindowChatMemory;
+import com.networknt.genai.model.chat.StreamingChatModel;
+import com.networknt.genai.model.chat.request.ChatRequestParameters;
+import com.networknt.genai.model.chat.response.ChatResponse;
+import com.networknt.genai.model.chat.response.PartialThinking;
+import com.networknt.genai.model.chat.response.PartialThinkingContext;
+import com.networknt.genai.model.openai.OpenAiStreamingChatModel;
+import com.networknt.genai.model.output.TokenUsage;
+import com.networknt.genai.rag.AugmentationResult;
+import com.networknt.genai.rag.RetrievalAugmentor;
+import com.networknt.genai.rag.content.Content;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -34,8 +34,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
-import static com.networknt.agent.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
-import static com.networknt.agent.model.output.FinishReason.STOP;
+import static com.networknt.genai.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
+import static com.networknt.genai.model.output.FinishReason.STOP;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
@@ -349,7 +349,7 @@ class StreamingAiServicesIT {
         List<ChatMessage> messages = chatMemory.messages();
         assertThat(messages).hasSize(6);
 
-        assertThat(messages.get(0)).isInstanceOf(com.networknt.agent.data.message.UserMessage.class);
+        assertThat(messages.get(0)).isInstanceOf(com.networknt.genai.data.message.UserMessage.class);
         assertThat(((UserMessage) messages.get(0)).singleText()).isEqualTo(userMessage);
 
         AiMessage aiMessage = (AiMessage) messages.get(1);
@@ -450,7 +450,7 @@ class StreamingAiServicesIT {
         List<ChatMessage> messages = chatMemory.messages();
         assertThat(messages).hasSize(5);
 
-        assertThat(messages.get(0)).isInstanceOf(com.networknt.agent.data.message.UserMessage.class);
+        assertThat(messages.get(0)).isInstanceOf(com.networknt.genai.data.message.UserMessage.class);
         assertThat(((UserMessage) messages.get(0)).singleText()).isEqualTo(userMessage);
 
         AiMessage aiMessage = (AiMessage) messages.get(1);
@@ -642,7 +642,7 @@ class StreamingAiServicesIT {
 
     interface AssistantWithChatRequestParams {
 
-        TokenStream chat(@com.networknt.agent.service.UserMessage String userMessage, ChatRequestParameters params);
+        TokenStream chat(@com.networknt.genai.service.UserMessage String userMessage, ChatRequestParameters params);
     }
 
     @ParameterizedTest

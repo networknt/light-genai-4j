@@ -1,20 +1,20 @@
-package com.networknt.agent.service;
+package com.networknt.genai.service;
 
-import com.networknt.agent.tool.P;
-import com.networknt.agent.tool.Tool;
-import com.networknt.agent.data.message.AiMessage;
-import com.networknt.agent.model.chat.ChatModel;
-import com.networknt.agent.model.openai.OpenAiChatModel;
-import com.networknt.agent.model.output.Response;
-import com.networknt.agent.model.output.TokenUsage;
+import com.networknt.genai.tool.P;
+import com.networknt.genai.tool.Tool;
+import com.networknt.genai.data.message.AiMessage;
+import com.networknt.genai.model.chat.ChatModel;
+import com.networknt.genai.model.openai.OpenAiChatModel;
+import com.networknt.genai.model.output.Response;
+import com.networknt.genai.model.output.TokenUsage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static com.networknt.agent.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
-import static com.networknt.agent.model.output.FinishReason.STOP;
+import static com.networknt.genai.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
+import static com.networknt.genai.model.output.FinishReason.STOP;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.Percentage.withPercentage;
 import static org.mockito.Mockito.spy;

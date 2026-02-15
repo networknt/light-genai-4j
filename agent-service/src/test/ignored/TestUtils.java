@@ -1,9 +1,9 @@
-package com.networknt.agent.internal;
+package com.networknt.genai.internal;
 
-import com.networknt.agent.data.message.AiMessage;
-import com.networknt.agent.data.message.SystemMessage;
-import com.networknt.agent.data.message.UserMessage;
-import com.networknt.agent.model.openai.OpenAiTokenCountEstimator;
+import com.networknt.genai.data.message.AiMessage;
+import com.networknt.genai.data.message.SystemMessage;
+import com.networknt.genai.data.message.UserMessage;
+import com.networknt.genai.model.openai.OpenAiTokenCountEstimator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -11,10 +11,10 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.networknt.agent.data.message.AiMessage.aiMessage;
-import static com.networknt.agent.data.message.SystemMessage.systemMessage;
-import static com.networknt.agent.data.message.UserMessage.userMessage;
-import static com.networknt.agent.model.openai.OpenAiChatModelName.GPT_3_5_TURBO;
+import static com.networknt.genai.data.message.AiMessage.aiMessage;
+import static com.networknt.genai.data.message.SystemMessage.systemMessage;
+import static com.networknt.genai.data.message.UserMessage.userMessage;
+import static com.networknt.genai.model.openai.OpenAiChatModelName.GPT_3_5_TURBO;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestUtils {

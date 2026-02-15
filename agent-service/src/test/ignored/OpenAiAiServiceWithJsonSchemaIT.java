@@ -1,15 +1,15 @@
-package com.networknt.agent.service.common.openai;
+package com.networknt.genai.service.common.openai;
 
-import com.networknt.agent.model.chat.ChatModel;
-import com.networknt.agent.model.chat.ChatModel;
-import com.networknt.agent.model.openai.OpenAiChatModel;
-import com.networknt.agent.service.common.AbstractAiServiceWithJsonSchemaIT;
+import com.networknt.genai.model.chat.ChatModel;
+import com.networknt.genai.model.chat.ChatModel;
+import com.networknt.genai.model.openai.OpenAiChatModel;
+import com.networknt.genai.service.common.AbstractAiServiceWithJsonSchemaIT;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import java.util.List;
 
-import static com.networknt.agent.model.chat.Capability.RESPONSE_FORMAT_JSON_SCHEMA;
-import static com.networknt.agent.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
+import static com.networknt.genai.model.chat.Capability.RESPONSE_FORMAT_JSON_SCHEMA;
+import static com.networknt.genai.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
 
 // TODO move to langchain4j-open-ai module once dependency cycle is resolved
 @EnabledIfEnvironmentVariable(named = "OPENAI_API_KEY", matches = ".+")

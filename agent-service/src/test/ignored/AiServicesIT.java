@@ -1,19 +1,19 @@
-package com.networknt.agent.service;
+package com.networknt.genai.service;
 
-import static com.networknt.agent.data.message.SystemMessage.systemMessage;
-import static com.networknt.agent.data.message.UserMessage.userMessage;
-import static com.networknt.agent.model.openai.OpenAiChatModelName.GPT_4_O;
-import static com.networknt.agent.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
-import static com.networknt.agent.model.openai.OpenAiChatModelName.O3_MINI;
-import static com.networknt.agent.model.output.FinishReason.STOP;
-import static com.networknt.agent.service.AiServicesIT.Ingredient.OIL;
-import static com.networknt.agent.service.AiServicesIT.Ingredient.PEPPER;
-import static com.networknt.agent.service.AiServicesIT.Ingredient.SALT;
-import static com.networknt.agent.service.AiServicesIT.IssueCategory.COMFORT_ISSUE;
-import static com.networknt.agent.service.AiServicesIT.IssueCategory.MAINTENANCE_ISSUE;
-import static com.networknt.agent.service.AiServicesIT.IssueCategory.OVERALL_EXPERIENCE_ISSUE;
-import static com.networknt.agent.service.AiServicesIT.IssueCategory.SERVICE_ISSUE;
-import static com.networknt.agent.service.AiServicesIT.Sentiment.POSITIVE;
+import static com.networknt.genai.data.message.SystemMessage.systemMessage;
+import static com.networknt.genai.data.message.UserMessage.userMessage;
+import static com.networknt.genai.model.openai.OpenAiChatModelName.GPT_4_O;
+import static com.networknt.genai.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
+import static com.networknt.genai.model.openai.OpenAiChatModelName.O3_MINI;
+import static com.networknt.genai.model.output.FinishReason.STOP;
+import static com.networknt.genai.service.AiServicesIT.Ingredient.OIL;
+import static com.networknt.genai.service.AiServicesIT.Ingredient.PEPPER;
+import static com.networknt.genai.service.AiServicesIT.Ingredient.SALT;
+import static com.networknt.genai.service.AiServicesIT.IssueCategory.COMFORT_ISSUE;
+import static com.networknt.genai.service.AiServicesIT.IssueCategory.MAINTENANCE_ISSUE;
+import static com.networknt.genai.service.AiServicesIT.IssueCategory.OVERALL_EXPERIENCE_ISSUE;
+import static com.networknt.genai.service.AiServicesIT.IssueCategory.SERVICE_ISSUE;
+import static com.networknt.genai.service.AiServicesIT.Sentiment.POSITIVE;
 import static java.time.Month.JULY;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,21 +25,21 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-import com.networknt.agent.data.message.AiMessage;
-import com.networknt.agent.data.message.ChatMessage;
-import com.networknt.agent.memory.ChatMemory;
-import com.networknt.agent.memory.chat.MessageWindowChatMemory;
-import com.networknt.agent.model.chat.ChatModel;
-import com.networknt.agent.model.chat.request.ChatRequest;
-import com.networknt.agent.model.chat.request.ChatRequestParameters;
-import com.networknt.agent.model.input.structured.StructuredPrompt;
-import com.networknt.agent.model.moderation.ModerationModel;
-import com.networknt.agent.model.openai.OpenAiChatModel;
-import com.networknt.agent.model.openai.OpenAiChatRequestParameters;
-import com.networknt.agent.model.openai.OpenAiModerationModel;
-import com.networknt.agent.model.output.Response;
-import com.networknt.agent.model.output.TokenUsage;
-import com.networknt.agent.model.output.structured.Description;
+import com.networknt.genai.data.message.AiMessage;
+import com.networknt.genai.data.message.ChatMessage;
+import com.networknt.genai.memory.ChatMemory;
+import com.networknt.genai.memory.chat.MessageWindowChatMemory;
+import com.networknt.genai.model.chat.ChatModel;
+import com.networknt.genai.model.chat.request.ChatRequest;
+import com.networknt.genai.model.chat.request.ChatRequestParameters;
+import com.networknt.genai.model.input.structured.StructuredPrompt;
+import com.networknt.genai.model.moderation.ModerationModel;
+import com.networknt.genai.model.openai.OpenAiChatModel;
+import com.networknt.genai.model.openai.OpenAiChatRequestParameters;
+import com.networknt.genai.model.openai.OpenAiModerationModel;
+import com.networknt.genai.model.output.Response;
+import com.networknt.genai.model.output.TokenUsage;
+import com.networknt.genai.model.output.structured.Description;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -443,7 +443,7 @@ public class AiServicesIT {
                         + "\"firstName\": (type: string),\n"
                         + "\"lastName\": (type: string),\n"
                         + "\"birthDate\": (type: date string (2023-12-31)),\n"
-                        + "\"address\": (type: com.networknt.agent.service.AiServicesIT$Address: {\n"
+                        + "\"address\": (type: com.networknt.genai.service.AiServicesIT$Address: {\n"
                         + "\"streetNumber\": (type: integer),\n"
                         + "\"street\": (type: string),\n"
                         + "\"city\": (type: string)\n"
@@ -489,7 +489,7 @@ public class AiServicesIT {
                         + "\"firstName\": (type: string),\n"
                         + "\"lastName\": (type: string),\n"
                         + "\"birthDate\": (type: date string (2023-12-31)),\n"
-                        + "\"address\": (type: com.networknt.agent.service.AiServicesIT$Address: {\n"
+                        + "\"address\": (type: com.networknt.genai.service.AiServicesIT$Address: {\n"
                         + "\"streetNumber\": (type: integer),\n"
                         + "\"street\": (type: string),\n"
                         + "\"city\": (type: string)\n"
@@ -971,7 +971,7 @@ public class AiServicesIT {
 
     static ChatRequest chatRequest(String userMessage) {
         return ChatRequest.builder()
-                .messages(com.networknt.agent.data.message.UserMessage.from(userMessage))
+                .messages(com.networknt.genai.data.message.UserMessage.from(userMessage))
                 .build();
     }
 
@@ -981,8 +981,8 @@ public class AiServicesIT {
         @Override
         default ChatRequest apply(ChatRequest chatRequest) {
             return chatRequest.messages().stream()
-                    .filter(com.networknt.agent.data.message.UserMessage.class::isInstance)
-                    .map(com.networknt.agent.data.message.UserMessage.class::cast)
+                    .filter(com.networknt.genai.data.message.UserMessage.class::isInstance)
+                    .map(com.networknt.genai.data.message.UserMessage.class::cast)
                     .findFirst()
                     .map(userMessage -> {
                         String originalMessage = userMessage.singleText();
@@ -992,7 +992,7 @@ public class AiServicesIT {
                         }
                         List<ChatMessage> messages = chatRequest.messages().stream()
                                 .map(message -> message == userMessage ?
-                                        com.networknt.agent.data.message.UserMessage.from(transformedMessage) :
+                                        com.networknt.genai.data.message.UserMessage.from(transformedMessage) :
                                         message)
                                 .toList();
                         return ChatRequest.builder()

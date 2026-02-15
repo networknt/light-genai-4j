@@ -22,8 +22,7 @@
     <dependencies>
         <dependency>
             <groupId>com.networknt</groupId>
-            <artifactId>agent-core</artifactId>
-            <version>${project.version}</version>
+            <artifactId>genai-core</artifactId>
         </dependency>
 
         <dependency>
@@ -54,8 +53,7 @@
 
         <dependency>
             <groupId>com.networknt</groupId>
-            <artifactId>agent-core</artifactId>
-            <version>${project.version}</version>
+            <artifactId>genai-core</artifactId>
             <classifier>tests</classifier>
             <type>test-jar</type>
             <scope>test</scope>

@@ -1,6 +1,6 @@
-package com.networknt.agent.model.chat.response;
+package com.networknt.genai.model.chat.response;
 
-import static com.networknt.agent.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
+import static com.networknt.genai.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -11,8 +11,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.util.concurrent.CompletableFuture;
-import com.networknt.agent.model.chat.StreamingChatModel;
-import com.networknt.agent.model.openai.OpenAiStreamingChatModel;
+import com.networknt.genai.model.chat.StreamingChatModel;
+import com.networknt.genai.model.openai.OpenAiStreamingChatModel;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 

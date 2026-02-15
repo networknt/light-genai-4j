@@ -1,14 +1,14 @@
-package com.networknt.agent.service.common.openai;
+package com.networknt.genai.service.common.openai;
 
-import static com.networknt.agent.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
+import static com.networknt.genai.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
 
-import com.networknt.agent.model.chat.StreamingChatModel;
-import com.networknt.agent.model.chat.response.ChatResponseMetadata;
-import com.networknt.agent.model.openai.OpenAiChatResponseMetadata;
-import com.networknt.agent.model.openai.OpenAiStreamingChatModel;
-import com.networknt.agent.model.openai.OpenAiTokenUsage;
-import com.networknt.agent.model.output.TokenUsage;
-import com.networknt.agent.service.common.AbstractStreamingAiServiceIT;
+import com.networknt.genai.model.chat.StreamingChatModel;
+import com.networknt.genai.model.chat.response.ChatResponseMetadata;
+import com.networknt.genai.model.openai.OpenAiChatResponseMetadata;
+import com.networknt.genai.model.openai.OpenAiStreamingChatModel;
+import com.networknt.genai.model.openai.OpenAiTokenUsage;
+import com.networknt.genai.model.output.TokenUsage;
+import com.networknt.genai.service.common.AbstractStreamingAiServiceIT;
 import java.util.List;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 

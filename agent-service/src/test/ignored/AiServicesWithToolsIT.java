@@ -1,8 +1,8 @@
-package com.networknt.agent.service;
+package com.networknt.genai.service;
 
-import static com.networknt.agent.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
-import static com.networknt.agent.model.output.FinishReason.STOP;
-import static com.networknt.agent.service.AiServicesWithToolsIT.TransactionService.EXPECTED_SPECIFICATION;
+import static com.networknt.genai.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
+import static com.networknt.genai.model.output.FinishReason.STOP;
+import static com.networknt.genai.service.AiServicesWithToolsIT.TransactionService.EXPECTED_SPECIFICATION;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,34 +20,34 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.networknt.agent.tool.P;
-import com.networknt.agent.tool.Tool;
-import com.networknt.agent.tool.ToolExecutionRequest;
-import com.networknt.agent.tool.ToolSpecification;
-import com.networknt.agent.data.message.AiMessage;
-import com.networknt.agent.data.message.ChatMessage;
-import com.networknt.agent.data.message.ToolExecutionResultMessage;
-import com.networknt.agent.data.message.UserMessage;
-import com.networknt.agent.internal.Json;
-import com.networknt.agent.invocation.InvocationContext;
-import com.networknt.agent.invocation.InvocationParameters;
-import com.networknt.agent.memory.ChatMemory;
-import com.networknt.agent.memory.chat.MessageWindowChatMemory;
-import com.networknt.agent.model.chat.ChatModel;
-import com.networknt.agent.model.chat.mock.ChatModelMock;
-import com.networknt.agent.model.chat.request.ChatRequest;
-import com.networknt.agent.model.chat.request.json.JsonArraySchema;
-import com.networknt.agent.model.chat.request.json.JsonIntegerSchema;
-import com.networknt.agent.model.chat.request.json.JsonObjectSchema;
-import com.networknt.agent.model.chat.request.json.JsonStringSchema;
-import com.networknt.agent.model.chat.response.ChatResponse;
-import com.networknt.agent.model.openai.OpenAiChatModel;
-import com.networknt.agent.model.output.TokenUsage;
-import com.networknt.agent.service.tool.ToolExecution;
-import com.networknt.agent.service.tool.ToolExecutionResult;
-import com.networknt.agent.service.tool.ToolExecutor;
-import com.networknt.agent.service.tool.ToolProvider;
-import com.networknt.agent.service.tool.ToolProviderResult;
+import com.networknt.genai.tool.P;
+import com.networknt.genai.tool.Tool;
+import com.networknt.genai.tool.ToolExecutionRequest;
+import com.networknt.genai.tool.ToolSpecification;
+import com.networknt.genai.data.message.AiMessage;
+import com.networknt.genai.data.message.ChatMessage;
+import com.networknt.genai.data.message.ToolExecutionResultMessage;
+import com.networknt.genai.data.message.UserMessage;
+import com.networknt.genai.internal.Json;
+import com.networknt.genai.invocation.InvocationContext;
+import com.networknt.genai.invocation.InvocationParameters;
+import com.networknt.genai.memory.ChatMemory;
+import com.networknt.genai.memory.chat.MessageWindowChatMemory;
+import com.networknt.genai.model.chat.ChatModel;
+import com.networknt.genai.model.chat.mock.ChatModelMock;
+import com.networknt.genai.model.chat.request.ChatRequest;
+import com.networknt.genai.model.chat.request.json.JsonArraySchema;
+import com.networknt.genai.model.chat.request.json.JsonIntegerSchema;
+import com.networknt.genai.model.chat.request.json.JsonObjectSchema;
+import com.networknt.genai.model.chat.request.json.JsonStringSchema;
+import com.networknt.genai.model.chat.response.ChatResponse;
+import com.networknt.genai.model.openai.OpenAiChatModel;
+import com.networknt.genai.model.output.TokenUsage;
+import com.networknt.genai.service.tool.ToolExecution;
+import com.networknt.genai.service.tool.ToolExecutionResult;
+import com.networknt.genai.service.tool.ToolExecutor;
+import com.networknt.genai.service.tool.ToolProvider;
+import com.networknt.genai.service.tool.ToolProviderResult;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -180,7 +180,7 @@ class AiServicesWithToolsIT {
         List<ChatMessage> messages = chatMemory.messages();
         assertThat(messages).hasSize(4);
 
-        assertThat(messages.get(0)).isInstanceOf(com.networknt.agent.data.message.UserMessage.class);
+        assertThat(messages.get(0)).isInstanceOf(com.networknt.genai.data.message.UserMessage.class);
         assertThat(((UserMessage) messages.get(0)).singleText()).isEqualTo(userMessage);
 
         AiMessage aiMessage = (AiMessage) messages.get(1);
@@ -278,7 +278,7 @@ class AiServicesWithToolsIT {
         List<ChatMessage> messages = chatMemory.messages();
         assertThat(messages).hasSize(6);
 
-        assertThat(messages.get(0)).isInstanceOf(com.networknt.agent.data.message.UserMessage.class);
+        assertThat(messages.get(0)).isInstanceOf(com.networknt.genai.data.message.UserMessage.class);
         assertThat(((UserMessage) messages.get(0)).singleText()).isEqualTo(userMessage);
 
         AiMessage aiMessage = (AiMessage) messages.get(1);
@@ -370,7 +370,7 @@ class AiServicesWithToolsIT {
         List<ChatMessage> messages = chatMemory.messages();
         assertThat(messages).hasSize(5);
 
-        assertThat(messages.get(0)).isInstanceOf(com.networknt.agent.data.message.UserMessage.class);
+        assertThat(messages.get(0)).isInstanceOf(com.networknt.genai.data.message.UserMessage.class);
         assertThat(((UserMessage) messages.get(0)).singleText()).isEqualTo(userMessage);
 
         AiMessage aiMessage = (AiMessage) messages.get(1);
@@ -820,7 +820,7 @@ class AiServicesWithToolsIT {
         interface Assistant {
 
             String chat(
-                    @com.networknt.agent.service.UserMessage String userMessage, InvocationParameters invocationParameters);
+                    @com.networknt.genai.service.UserMessage String userMessage, InvocationParameters invocationParameters);
         }
 
         Tools spyTools = spy(new Tools());
@@ -876,7 +876,7 @@ class AiServicesWithToolsIT {
         interface Assistant {
 
             String chat(
-                    @com.networknt.agent.service.UserMessage String userMessage,
+                    @com.networknt.genai.service.UserMessage String userMessage,
                     CustomInvocationParameters invocationParameters);
         }
 
@@ -916,7 +916,7 @@ class AiServicesWithToolsIT {
         interface Assistant {
 
             String chat(
-                    @com.networknt.agent.service.UserMessage String userMessage, InvocationParameters invocationParameters);
+                    @com.networknt.genai.service.UserMessage String userMessage, InvocationParameters invocationParameters);
         }
 
         Tools spyTools = spy(new Tools());
@@ -999,7 +999,7 @@ class AiServicesWithToolsIT {
         interface Assistant {
 
             String chat(
-                    @com.networknt.agent.service.UserMessage String userMessage, InvocationParameters invocationParameters);
+                    @com.networknt.genai.service.UserMessage String userMessage, InvocationParameters invocationParameters);
         }
 
         String includeToolsKey = "includeTools";
@@ -1297,7 +1297,7 @@ class AiServicesWithToolsIT {
 
     interface RouterAgent {
 
-        @com.networknt.agent.service.UserMessage(
+        @com.networknt.genai.service.UserMessage(
                 """
             Analyze the following user request and categorize it as 'legal', 'medical' or 'technical',
             then forward the request as it is to the corresponding expert provided as a tool.
@@ -1310,7 +1310,7 @@ class AiServicesWithToolsIT {
 
     interface MedicalExpert {
 
-        @com.networknt.agent.service.UserMessage(
+        @com.networknt.genai.service.UserMessage(
                 """
             You are a medical expert.
             Analyze the following user request under a medical point of view and provide the best possible answer.
@@ -1322,7 +1322,7 @@ class AiServicesWithToolsIT {
 
     interface LegalExpert {
 
-        @com.networknt.agent.service.UserMessage(
+        @com.networknt.genai.service.UserMessage(
                 """
             You are a legal expert.
             Analyze the following user request under a legal point of view and provide the best possible answer.
@@ -1334,7 +1334,7 @@ class AiServicesWithToolsIT {
 
     interface TechnicalExpert {
 
-        @com.networknt.agent.service.UserMessage(
+        @com.networknt.genai.service.UserMessage(
                 """
             You are a technical expert.
             Analyze the following user request under a technical point of view and provide the best possible answer.
@@ -1454,7 +1454,7 @@ class AiServicesWithToolsIT {
 
     interface Counter {
 
-        @com.networknt.agent.service.UserMessage("Calculate the result of the following expression:\n|||{{it}}|||")
+        @com.networknt.genai.service.UserMessage("Calculate the result of the following expression:\n|||{{it}}|||")
         int doMath(String sentence);
     }
 

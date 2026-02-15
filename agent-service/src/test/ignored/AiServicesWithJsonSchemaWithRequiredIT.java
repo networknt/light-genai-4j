@@ -1,13 +1,13 @@
-package com.networknt.agent.service;
+package com.networknt.genai.service;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.networknt.agent.model.chat.ChatModel;
-import com.networknt.agent.model.chat.ChatModel;
-import com.networknt.agent.model.chat.request.ChatRequest;
-import com.networknt.agent.model.chat.request.ResponseFormat;
-import com.networknt.agent.model.chat.request.json.JsonObjectSchema;
-import com.networknt.agent.model.chat.request.json.JsonSchema;
-import com.networknt.agent.model.openai.OpenAiChatModel;
+import com.networknt.genai.model.chat.ChatModel;
+import com.networknt.genai.model.chat.ChatModel;
+import com.networknt.genai.model.chat.request.ChatRequest;
+import com.networknt.genai.model.chat.request.ResponseFormat;
+import com.networknt.genai.model.chat.request.json.JsonObjectSchema;
+import com.networknt.genai.model.chat.request.json.JsonSchema;
+import com.networknt.genai.model.openai.OpenAiChatModel;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
@@ -15,11 +15,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static com.networknt.agent.data.message.UserMessage.userMessage;
-import static com.networknt.agent.model.chat.Capability.RESPONSE_FORMAT_JSON_SCHEMA;
-import static com.networknt.agent.model.chat.request.ResponseFormatType.JSON;
-import static com.networknt.agent.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
-import static com.networknt.agent.service.AiServicesIT.verifyNoMoreInteractionsFor;
+import static com.networknt.genai.data.message.UserMessage.userMessage;
+import static com.networknt.genai.model.chat.Capability.RESPONSE_FORMAT_JSON_SCHEMA;
+import static com.networknt.genai.model.chat.request.ResponseFormatType.JSON;
+import static com.networknt.genai.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
+import static com.networknt.genai.service.AiServicesIT.verifyNoMoreInteractionsFor;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
