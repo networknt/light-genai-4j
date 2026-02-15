@@ -7,7 +7,7 @@ import static com.networknt.genai.internal.ValidationUtils.ensureNotNull;
 import static java.util.Arrays.asList;
 
 import com.networknt.genai.Experimental;
-import com.networknt.genai.http.client.HttpClientBuilder;
+import com.networknt.genai.client.HttpClientBuilder;
 import com.networknt.genai.model.ModelProvider;
 import com.networknt.genai.model.chat.StreamingChatModel;
 import com.networknt.genai.model.chat.listener.ChatModelListener;

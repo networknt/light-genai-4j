@@ -1,17 +1,17 @@
 package com.networknt.genai.model.openai.internal;
 
-import com.networknt.genai.http.client.HttpClient;
-import com.networknt.genai.http.client.HttpRequest;
-import com.networknt.genai.http.client.SuccessfulHttpResponse;
-import com.networknt.genai.http.client.sse.ServerSentEvent;
-import com.networknt.genai.http.client.sse.ServerSentEventListener;
-import com.networknt.genai.http.client.sse.ServerSentEventParser;
+import com.networknt.genai.client.HttpClient;
+import com.networknt.genai.client.HttpRequest;
+import com.networknt.genai.client.SuccessfulHttpResponse;
+import com.networknt.genai.client.sse.ServerSentEvent;
+import com.networknt.genai.client.sse.ServerSentEventListener;
+import com.networknt.genai.client.sse.ServerSentEventParser;
 import com.networknt.genai.model.openai.internal.chat.ChatCompletionResponse;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CompletableFuture;
 
-import static com.networknt.genai.http.client.HttpMethod.GET;
+import static com.networknt.genai.client.HttpMethod.GET;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 

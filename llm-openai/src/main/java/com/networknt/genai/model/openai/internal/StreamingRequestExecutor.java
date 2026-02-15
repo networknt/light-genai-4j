@@ -1,17 +1,17 @@
 package com.networknt.genai.model.openai.internal;
 
-import com.networknt.genai.http.client.HttpClient;
-import com.networknt.genai.http.client.HttpRequest;
-import com.networknt.genai.http.client.SuccessfulHttpResponse;
-import com.networknt.genai.http.client.sse.ServerSentEvent;
-import com.networknt.genai.http.client.sse.ServerSentEventContext;
-import com.networknt.genai.http.client.sse.ServerSentEventListener;
-import com.networknt.genai.http.client.sse.CancellationUnsupportedHandle;
+import com.networknt.genai.client.HttpClient;
+import com.networknt.genai.client.HttpRequest;
+import com.networknt.genai.client.SuccessfulHttpResponse;
+import com.networknt.genai.client.sse.ServerSentEvent;
+import com.networknt.genai.client.sse.ServerSentEventContext;
+import com.networknt.genai.client.sse.ServerSentEventListener;
+import com.networknt.genai.client.sse.CancellationUnsupportedHandle;
 import com.networknt.genai.model.chat.response.StreamingHandle;
 
 import java.util.function.Consumer;
 
-import static com.networknt.genai.http.client.sse.ServerSentEventParsingHandleUtils.toStreamingHandle;
+import static com.networknt.genai.client.sse.ServerSentEventParsingHandleUtils.toStreamingHandle;
 
 class StreamingRequestExecutor<Response> {
 

@@ -6,7 +6,7 @@ import static com.networknt.genai.model.openai.internal.chat.ToolType.FUNCTION;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.networknt.genai.agent.tool.ToolExecutionRequest;
+import com.networknt.genai.tool.ToolExecutionRequest;
 import com.networknt.genai.data.message.AiMessage;
 import com.networknt.genai.model.chat.request.ToolChoice;
 import com.networknt.genai.model.openai.internal.chat.AssistantMessage;

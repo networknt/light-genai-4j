@@ -1,8 +1,8 @@
 package com.networknt.genai.model.openai.internal;
 
 import com.networknt.genai.Internal;
-import com.networknt.genai.http.client.SuccessfulHttpResponse;
-import com.networknt.genai.http.client.sse.ServerSentEvent;
+import com.networknt.genai.client.SuccessfulHttpResponse;
+import com.networknt.genai.client.sse.ServerSentEvent;
 import com.networknt.genai.model.chat.response.StreamingHandle;
 
 @Internal

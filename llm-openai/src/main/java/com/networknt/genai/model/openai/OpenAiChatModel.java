@@ -18,7 +18,7 @@ import static java.time.Duration.ofSeconds;
 import static java.util.Arrays.asList;
 
 import com.networknt.genai.data.message.AiMessage;
-import com.networknt.genai.http.client.HttpClientBuilder;
+import com.networknt.genai.client.HttpClientBuilder;
 import com.networknt.genai.model.ModelProvider;
 import com.networknt.genai.model.chat.Capability;
 import com.networknt.genai.model.chat.ChatModel;

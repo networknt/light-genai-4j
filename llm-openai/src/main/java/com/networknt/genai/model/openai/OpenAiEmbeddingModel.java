@@ -11,7 +11,7 @@ import static java.time.Duration.ofSeconds;
 
 import com.networknt.genai.data.embedding.Embedding;
 import com.networknt.genai.data.segment.TextSegment;
-import com.networknt.genai.http.client.HttpClientBuilder;
+import com.networknt.genai.client.HttpClientBuilder;
 import com.networknt.genai.model.embedding.DimensionAwareEmbeddingModel;
 import com.networknt.genai.model.openai.internal.OpenAiClient;
 import com.networknt.genai.model.openai.internal.embedding.EmbeddingRequest;

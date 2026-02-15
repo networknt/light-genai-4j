@@ -1,6 +1,6 @@
 package com.networknt.genai.model.openai;
 
-import com.networknt.genai.agent.tool.ToolExecutionRequest;
+import com.networknt.genai.tool.ToolExecutionRequest;
 import com.networknt.genai.data.message.ChatMessage;
 import com.networknt.genai.model.TokenCountEstimator;
 import org.junit.jupiter.api.Disabled;

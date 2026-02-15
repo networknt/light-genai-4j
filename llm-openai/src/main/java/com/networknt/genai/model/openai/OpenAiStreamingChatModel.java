@@ -20,7 +20,7 @@ import static com.networknt.genai.spi.ServiceHelper.loadFactories;
 import static java.time.Duration.ofSeconds;
 
 import com.networknt.genai.data.message.AiMessage;
-import com.networknt.genai.http.client.HttpClientBuilder;
+import com.networknt.genai.client.HttpClientBuilder;
 import com.networknt.genai.internal.ExceptionMapper;
 import com.networknt.genai.internal.ToolCallBuilder;
 import com.networknt.genai.model.ModelProvider;

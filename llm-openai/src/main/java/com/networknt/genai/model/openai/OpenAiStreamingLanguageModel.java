@@ -7,7 +7,7 @@ import static com.networknt.genai.model.openai.internal.OpenAiUtils.DEFAULT_USER
 import static com.networknt.genai.spi.ServiceHelper.loadFactories;
 import static java.time.Duration.ofSeconds;
 
-import com.networknt.genai.http.client.HttpClientBuilder;
+import com.networknt.genai.client.HttpClientBuilder;
 import com.networknt.genai.internal.ExceptionMapper;
 import com.networknt.genai.model.StreamingResponseHandler;
 import com.networknt.genai.model.chat.response.ChatResponse;

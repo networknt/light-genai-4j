@@ -1,7 +1,7 @@
 package com.networknt.genai.model.openai.internal;
 
 import java.util.function.Consumer;
-import com.networknt.genai.http.client.sse.ServerSentEvent;
+import com.networknt.genai.client.sse.ServerSentEvent;
 
 public interface SyncOrAsyncOrStreaming<ResponseContent> extends SyncOrAsync<ResponseContent> {
 

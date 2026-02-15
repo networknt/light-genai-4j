@@ -1,17 +1,17 @@
 package com.networknt.genai.model.openai.internal;
 
-import static com.networknt.genai.http.client.HttpMethod.GET;
-import static com.networknt.genai.http.client.HttpMethod.POST;
+import static com.networknt.genai.client.HttpMethod.GET;
+import static com.networknt.genai.client.HttpMethod.POST;
 import static com.networknt.genai.internal.Utils.getOrDefault;
 import static com.networknt.genai.internal.Utils.isNullOrEmpty;
 import static com.networknt.genai.internal.ValidationUtils.ensureNotBlank;
 import static java.time.Duration.ofSeconds;
 
-import com.networknt.genai.http.client.HttpClient;
-import com.networknt.genai.http.client.HttpClientBuilder;
-import com.networknt.genai.http.client.HttpClientBuilderLoader;
-import com.networknt.genai.http.client.HttpRequest;
-import com.networknt.genai.http.client.log.LoggingHttpClient;
+import com.networknt.genai.client.HttpClient;
+import com.networknt.genai.client.HttpClientBuilder;
+import com.networknt.genai.client.HttpClientBuilderLoader;
+import com.networknt.genai.client.HttpRequest;
+import com.networknt.genai.client.log.LoggingHttpClient;
 import com.networknt.genai.model.openai.internal.audio.transcription.AudioFile;
 import com.networknt.genai.model.openai.internal.audio.transcription.OpenAiAudioTranscriptionRequest;
 import com.networknt.genai.model.openai.internal.audio.transcription.OpenAiAudioTranscriptionResponse;

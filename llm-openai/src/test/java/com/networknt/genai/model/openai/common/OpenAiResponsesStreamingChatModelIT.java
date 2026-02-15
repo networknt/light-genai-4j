@@ -7,13 +7,13 @@ import static org.mockito.ArgumentMatchers.argThat;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.networknt.genai.agent.tool.ToolExecutionRequest;
-import com.networknt.genai.agent.tool.ToolSpecification;
+import com.networknt.genai.tool.ToolExecutionRequest;
+import com.networknt.genai.tool.ToolSpecification;
 import com.networknt.genai.data.message.ImageContent;
 import com.networknt.genai.data.message.TextContent;
 import com.networknt.genai.data.message.UserMessage;
-import com.networknt.genai.http.client.MockHttpClient;
-import com.networknt.genai.http.client.MockHttpClientBuilder;
+import com.networknt.genai.client.MockHttpClient;
+import com.networknt.genai.client.MockHttpClientBuilder;
 import com.networknt.genai.model.chat.StreamingChatModel;
 import com.networknt.genai.model.chat.TestStreamingChatResponseHandler;
 import com.networknt.genai.model.chat.common.AbstractStreamingChatModelIT;

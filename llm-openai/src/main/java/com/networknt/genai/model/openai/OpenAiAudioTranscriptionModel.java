@@ -1,7 +1,7 @@
 package com.networknt.genai.model.openai;
 
 import com.networknt.genai.Experimental;
-import com.networknt.genai.http.client.HttpClientBuilder;
+import com.networknt.genai.client.HttpClientBuilder;
 import com.networknt.genai.model.ModelProvider;
 import com.networknt.genai.model.audio.AudioTranscriptionModel;
 import com.networknt.genai.model.audio.AudioTranscriptionRequest;

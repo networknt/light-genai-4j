@@ -1,6 +1,6 @@
 package com.networknt.genai.model.openai.internal;
 
-import com.networknt.genai.http.client.SuccessfulHttpResponse;
+import com.networknt.genai.client.SuccessfulHttpResponse;
 import java.util.function.Consumer;
 
 public interface SyncOrAsync<ResponseContent> {

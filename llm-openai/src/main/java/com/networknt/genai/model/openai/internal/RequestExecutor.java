@@ -1,7 +1,7 @@
 package com.networknt.genai.model.openai.internal;
 
-import com.networknt.genai.http.client.HttpClient;
-import com.networknt.genai.http.client.HttpRequest;
+import com.networknt.genai.client.HttpClient;
+import com.networknt.genai.client.HttpRequest;
 
 import java.util.function.Consumer;
 

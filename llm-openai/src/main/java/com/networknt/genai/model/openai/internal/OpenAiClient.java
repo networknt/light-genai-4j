@@ -1,6 +1,6 @@
 package com.networknt.genai.model.openai.internal;
 
-import com.networknt.genai.http.client.HttpClientBuilder;
+import com.networknt.genai.client.HttpClientBuilder;
 import com.networknt.genai.model.openai.internal.audio.transcription.OpenAiAudioTranscriptionRequest;
 import com.networknt.genai.model.openai.internal.audio.transcription.OpenAiAudioTranscriptionResponse;
 import com.networknt.genai.model.openai.internal.chat.ChatCompletionRequest;

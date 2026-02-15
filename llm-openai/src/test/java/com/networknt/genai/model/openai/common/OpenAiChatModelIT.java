@@ -1,9 +1,9 @@
 package com.networknt.genai.model.openai.common;
 
-import com.networknt.genai.agent.tool.ToolSpecification;
+import com.networknt.genai.tool.ToolSpecification;
 import com.networknt.genai.data.message.UserMessage;
-import com.networknt.genai.http.client.MockHttpClient;
-import com.networknt.genai.http.client.MockHttpClientBuilder;
+import com.networknt.genai.client.MockHttpClient;
+import com.networknt.genai.client.MockHttpClientBuilder;
 import com.networknt.genai.model.chat.ChatModel;
 import com.networknt.genai.model.chat.common.AbstractChatModelIT;
 import com.networknt.genai.model.chat.request.ChatRequest;

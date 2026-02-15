@@ -7,10 +7,10 @@ import static com.networknt.genai.model.openai.internal.OpenAiUtils.tokenUsageFr
 import static java.util.stream.Collectors.toList;
 
 import com.networknt.genai.Internal;
-import com.networknt.genai.agent.tool.ToolExecutionRequest;
+import com.networknt.genai.tool.ToolExecutionRequest;
 import com.networknt.genai.data.message.AiMessage;
-import com.networknt.genai.http.client.SuccessfulHttpResponse;
-import com.networknt.genai.http.client.sse.ServerSentEvent;
+import com.networknt.genai.client.SuccessfulHttpResponse;
+import com.networknt.genai.client.sse.ServerSentEvent;
 import com.networknt.genai.model.chat.response.ChatResponse;
 import com.networknt.genai.model.openai.internal.ParsedAndRawResponse;
 import com.networknt.genai.model.openai.internal.chat.ChatCompletionChoice;

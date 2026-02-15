@@ -2,8 +2,8 @@ package com.networknt.genai.model.openai;
 
 import static com.networknt.genai.internal.Utils.copy;
 
-import com.networknt.genai.http.client.SuccessfulHttpResponse;
-import com.networknt.genai.http.client.sse.ServerSentEvent;
+import com.networknt.genai.client.SuccessfulHttpResponse;
+import com.networknt.genai.client.sse.ServerSentEvent;
 import com.networknt.genai.model.chat.response.ChatResponseMetadata;
 import com.networknt.genai.model.output.TokenUsage;
 import java.util.List;

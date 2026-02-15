@@ -1,6 +1,6 @@
 package com.networknt.genai.model.openai.common;
 
-import com.networknt.genai.agent.tool.ToolExecutionRequest;
+import com.networknt.genai.tool.ToolExecutionRequest;
 import com.networknt.genai.model.chat.StreamingChatModel;
 import com.networknt.genai.model.chat.common.AbstractStreamingChatModelIT;
 import com.networknt.genai.model.chat.listener.ChatModelListener;

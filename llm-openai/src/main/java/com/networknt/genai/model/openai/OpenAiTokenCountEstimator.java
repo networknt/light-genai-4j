@@ -6,7 +6,7 @@ import com.knuddels.jtokkit.Encodings;
 import com.knuddels.jtokkit.api.Encoding;
 import com.knuddels.jtokkit.api.EncodingRegistry;
 import com.knuddels.jtokkit.api.IntArrayList;
-import com.networknt.genai.agent.tool.ToolExecutionRequest;
+import com.networknt.genai.tool.ToolExecutionRequest;
 import com.networknt.genai.data.message.AiMessage;
 import com.networknt.genai.data.message.ChatMessage;
 import com.networknt.genai.data.message.Content;

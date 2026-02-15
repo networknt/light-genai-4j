@@ -13,7 +13,7 @@ import com.networknt.genai.data.message.ChatMessage;
 import com.networknt.genai.data.message.SystemMessage;
 import com.networknt.genai.data.message.ToolExecutionResultMessage;
 import com.networknt.genai.data.message.UserMessage;
-import com.networknt.genai.http.client.HttpClientBuilder;
+import com.networknt.genai.client.HttpClientBuilder;
 import com.networknt.genai.model.moderation.Moderation;
 import com.networknt.genai.model.moderation.ModerationModel;
 import com.networknt.genai.model.openai.internal.OpenAiClient;
