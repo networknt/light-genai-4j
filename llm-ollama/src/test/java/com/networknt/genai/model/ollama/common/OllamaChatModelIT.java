@@ -19,14 +19,14 @@ import com.networknt.genai.model.chat.response.ChatResponseMetadata;
 import com.networknt.genai.model.ollama.LC4jOllamaContainer;
 import com.networknt.genai.model.ollama.OllamaChatModel;
 import com.networknt.genai.model.ollama.OllamaChatRequestParameters;
-import com.networknt.genai.model.openaiofficial.OpenAiOfficialChatModel;
+import com.networknt.genai.model.openai.OpenAiChatModel;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.networknt.genai.model.openaiofficial.OpenAiOfficialChatResponseMetadata;
-import com.networknt.genai.model.openaiofficial.OpenAiOfficialStreamingChatModel;
-import com.networknt.genai.model.openaiofficial.OpenAiOfficialTokenUsage;
+import com.networknt.genai.model.openai.OpenAiChatResponseMetadata;
+import com.networknt.genai.model.openai.OpenAiStreamingChatModel;
+import com.networknt.genai.model.openai.OpenAiTokenUsage;
 import com.networknt.genai.model.output.TokenUsage;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.condition.DisabledIf;
@@ -90,19 +90,21 @@ class OllamaChatModelIT extends AbstractChatModelIT {
             .timeout(ofSeconds(180))
             .build();
 
-    static final OpenAiOfficialChatModel OPEN_AI_CHAT_MODEL_WITH_TOOLS = OpenAiOfficialChatModel.builder()
+    static final OpenAiChatModel OPEN_AI_CHAT_MODEL_WITH_TOOLS = OpenAiChatModel.builder()
             .baseUrl(ollamaBaseUrl(ollamaWithTools) + "/v1")
             .modelName(MODEL_WITH_TOOLS)
-            .apiKey("ollama")
             .temperature(0.0)
+            .logRequests(true)
+            .logResponses(true)
             .timeout(ofSeconds(180))
             .build();
 
-    static final OpenAiOfficialChatModel OPEN_AI_CHAT_MODEL_WITH_VISION = OpenAiOfficialChatModel.builder()
+    static final OpenAiChatModel OPEN_AI_CHAT_MODEL_WITH_VISION = OpenAiChatModel.builder()
             .baseUrl(ollamaBaseUrl(ollamaWithVision) + "/v1")
             .modelName(MODEL_WITH_VISION)
-            .apiKey("ollama")
             .temperature(0.0)
+            .logRequests(false) // base64-encoded images are huge in logs
+            .logResponses(true)
             .timeout(ofSeconds(180))
             .build();
 
@@ -123,16 +125,11 @@ class OllamaChatModelIT extends AbstractChatModelIT {
     }
 
     @Override
-    @Disabled("llama 3.1 generates hallucinated arguments for tools without parameters")
-    protected void should_execute_a_tool_without_arguments_then_answer(ChatModel model) {
-    }
-
-    @Override
     @ParameterizedTest
     @MethodSource("modelsSupportingTools")
     @DisabledIf("supportsToolChoiceRequired")
     protected void should_fail_if_tool_choice_REQUIRED_is_not_supported(ChatModel model) {
-        if (model instanceof OpenAiOfficialChatModel) {
+        if (model instanceof OpenAiChatModel) {
             return; // OpenAI supports it
         }
         super.should_fail_if_tool_choice_REQUIRED_is_not_supported(model);
@@ -143,7 +140,7 @@ class OllamaChatModelIT extends AbstractChatModelIT {
     @MethodSource("models")
     @DisabledIf("supportsJsonResponseFormat")
     protected void should_fail_if_JSON_response_format_is_not_supported(ChatModel model) {
-        if (model instanceof OpenAiOfficialChatModel) {
+        if (model instanceof OpenAiChatModel) {
             return; // OpenAI supports it
         }
         super.should_fail_if_JSON_response_format_is_not_supported(model);
@@ -154,7 +151,7 @@ class OllamaChatModelIT extends AbstractChatModelIT {
     @MethodSource("models")
     @DisabledIf("supportsJsonResponseFormatWithSchema")
     protected void should_fail_if_JSON_response_format_with_schema_is_not_supported(ChatModel model) {
-        if (model instanceof OpenAiOfficialChatModel) {
+        if (model instanceof OpenAiChatModel) {
             return; // OpenAI supports it
         }
         super.should_fail_if_JSON_response_format_with_schema_is_not_supported(model);
@@ -165,7 +162,7 @@ class OllamaChatModelIT extends AbstractChatModelIT {
     @MethodSource("modelsSupportingImageInputs")
     @EnabledIf("supportsSingleImageInputAsPublicURL")
     protected void should_accept_single_image_as_public_URL(ChatModel model) {
-        if (model instanceof OpenAiOfficialChatModel) {
+        if (model instanceof OpenAiChatModel) {
             return; // OpenAI does not implement automatic image download
         }
         super.should_accept_single_image_as_public_URL(model);
@@ -232,13 +229,13 @@ class OllamaChatModelIT extends AbstractChatModelIT {
 
     @Override
     protected boolean assertToolId(ChatModel model) {
-        return model instanceof OpenAiOfficialStreamingChatModel; // Ollama does not return tool ID via Ollama API
+        return model instanceof OpenAiStreamingChatModel; // Ollama does not return tool ID via Ollama API
     }
 
     @Override
     protected Class<? extends ChatResponseMetadata> chatResponseMetadataType(ChatModel chatModel) {
-        if (chatModel instanceof OpenAiOfficialChatModel) {
-            return OpenAiOfficialChatResponseMetadata.class;
+        if (chatModel instanceof OpenAiChatModel) {
+            return OpenAiChatResponseMetadata.class;
         } else if (chatModel instanceof OllamaChatModel) {
             return ChatResponseMetadata.class;
         } else {
@@ -248,8 +245,8 @@ class OllamaChatModelIT extends AbstractChatModelIT {
 
     @Override
     protected Class<? extends TokenUsage> tokenUsageType(ChatModel chatModel) {
-        if (chatModel instanceof OpenAiOfficialChatModel) {
-            return OpenAiOfficialTokenUsage.class;
+        if (chatModel instanceof OpenAiChatModel) {
+            return OpenAiTokenUsage.class;
         } else if (chatModel instanceof OllamaChatModel) {
             return TokenUsage.class;
         } else {

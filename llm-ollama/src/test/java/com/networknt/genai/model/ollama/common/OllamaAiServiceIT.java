@@ -2,8 +2,8 @@ package com.networknt.genai.model.ollama.common;
 
 import com.networknt.genai.model.chat.ChatModel;
 import com.networknt.genai.model.ollama.OllamaChatModel;
-import com.networknt.genai.model.openaiofficial.OpenAiOfficialChatModel;
-import com.networknt.genai.model.openaiofficial.OpenAiOfficialTokenUsage;
+import com.networknt.genai.model.openai.OpenAiChatModel;
+import com.networknt.genai.model.openai.OpenAiTokenUsage;
 import com.networknt.genai.model.output.TokenUsage;
 import com.networknt.genai.service.common.AbstractAiServiceIT;
 
@@ -21,8 +21,8 @@ class OllamaAiServiceIT extends AbstractAiServiceIT {
 
     @Override
     protected Class<? extends TokenUsage> tokenUsageType(ChatModel chatModel) {
-        if (chatModel instanceof OpenAiOfficialChatModel) {
-            return OpenAiOfficialTokenUsage.class;
+        if (chatModel instanceof OpenAiChatModel) {
+            return OpenAiTokenUsage.class;
         } else if (chatModel instanceof OllamaChatModel) {
             return TokenUsage.class;
         } else {

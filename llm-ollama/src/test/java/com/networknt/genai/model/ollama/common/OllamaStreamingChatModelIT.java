@@ -28,9 +28,9 @@ import com.networknt.genai.model.chat.response.StreamingChatResponseHandler;
 import com.networknt.genai.model.ollama.LC4jOllamaContainer;
 import com.networknt.genai.model.ollama.OllamaChatRequestParameters;
 import com.networknt.genai.model.ollama.OllamaStreamingChatModel;
-import com.networknt.genai.model.openaiofficial.OpenAiOfficialChatResponseMetadata;
-import com.networknt.genai.model.openaiofficial.OpenAiOfficialStreamingChatModel;
-import com.networknt.genai.model.openaiofficial.OpenAiOfficialTokenUsage;
+import com.networknt.genai.model.openai.OpenAiChatResponseMetadata;
+import com.networknt.genai.model.openai.OpenAiStreamingChatModel;
+import com.networknt.genai.model.openai.OpenAiTokenUsage;
 import com.networknt.genai.model.output.TokenUsage;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.condition.DisabledIf;
@@ -93,19 +93,21 @@ class OllamaStreamingChatModelIT extends AbstractStreamingChatModelIT {
             .timeout(ofSeconds(180))
             .build();
 
-    static final OpenAiOfficialStreamingChatModel OPEN_AI_CHAT_MODEL_WITH_TOOLS = OpenAiOfficialStreamingChatModel.builder()
+    static final OpenAiStreamingChatModel OPEN_AI_CHAT_MODEL_WITH_TOOLS = OpenAiStreamingChatModel.builder()
             .baseUrl(ollamaBaseUrl(ollamaWithTools) + "/v1")
             .modelName(MODEL_WITH_TOOLS)
-            .apiKey("ollama")
             .temperature(0.0)
+            .logRequests(true)
+            .logResponses(true)
             .timeout(ofSeconds(180))
             .build();
 
-    static final OpenAiOfficialStreamingChatModel OPEN_AI_CHAT_MODEL_WITH_VISION = OpenAiOfficialStreamingChatModel.builder()
+    static final OpenAiStreamingChatModel OPEN_AI_CHAT_MODEL_WITH_VISION = OpenAiStreamingChatModel.builder()
             .baseUrl(ollamaBaseUrl(ollamaWithVision) + "/v1")
             .modelName(MODEL_WITH_VISION)
-            .apiKey("ollama")
             .temperature(0.0)
+            .logRequests(false) // base64-encoded images are huge in logs
+            .logResponses(true)
             .timeout(ofSeconds(180))
             .build();
 
@@ -125,16 +127,11 @@ class OllamaStreamingChatModelIT extends AbstractStreamingChatModelIT {
     }
 
     @Override
-    @Disabled("llama 3.1 generates hallucinated arguments for tools without parameters")
-    protected void should_execute_a_tool_without_arguments_then_answer(StreamingChatModel model) {
-    }
-
-    @Override
     @ParameterizedTest
     @MethodSource("modelsSupportingTools")
     @DisabledIf("supportsToolChoiceRequired")
     protected void should_fail_if_tool_choice_REQUIRED_is_not_supported(StreamingChatModel model) {
-        if (model instanceof OpenAiOfficialStreamingChatModel) {
+        if (model instanceof OpenAiStreamingChatModel) {
             return; // OpenAI supports it
         }
         super.should_fail_if_tool_choice_REQUIRED_is_not_supported(model);
@@ -145,7 +142,7 @@ class OllamaStreamingChatModelIT extends AbstractStreamingChatModelIT {
     @MethodSource("models")
     @DisabledIf("supportsJsonResponseFormat")
     protected void should_fail_if_JSON_response_format_is_not_supported(StreamingChatModel model) {
-        if (model instanceof OpenAiOfficialStreamingChatModel) {
+        if (model instanceof OpenAiStreamingChatModel) {
             return; // OpenAI supports it
         }
         super.should_fail_if_JSON_response_format_is_not_supported(model);
@@ -156,7 +153,7 @@ class OllamaStreamingChatModelIT extends AbstractStreamingChatModelIT {
     @MethodSource("models")
     @DisabledIf("supportsJsonResponseFormatWithSchema")
     protected void should_fail_if_JSON_response_format_with_schema_is_not_supported(StreamingChatModel model) {
-        if (model instanceof OpenAiOfficialStreamingChatModel) {
+        if (model instanceof OpenAiStreamingChatModel) {
             return; // OpenAI supports it
         }
         super.should_fail_if_JSON_response_format_with_schema_is_not_supported(model);
@@ -167,7 +164,7 @@ class OllamaStreamingChatModelIT extends AbstractStreamingChatModelIT {
     @MethodSource("modelsSupportingImageInputs")
     @EnabledIf("supportsSingleImageInputAsPublicURL")
     protected void should_accept_single_image_as_public_URL(StreamingChatModel model) {
-        if (model instanceof OpenAiOfficialStreamingChatModel) {
+        if (model instanceof OpenAiStreamingChatModel) {
             return; // OpenAI does not implement automatic image download
         }
         super.should_accept_single_image_as_public_URL(model);
@@ -235,7 +232,7 @@ class OllamaStreamingChatModelIT extends AbstractStreamingChatModelIT {
 
     @Override
     protected boolean assertToolId(StreamingChatModel model) {
-        return model instanceof OpenAiOfficialStreamingChatModel; // Ollama does not return tool ID via Ollama API
+        return model instanceof OpenAiStreamingChatModel; // Ollama does not return tool ID via Ollama API
     }
 
     @Override
@@ -258,8 +255,8 @@ class OllamaStreamingChatModelIT extends AbstractStreamingChatModelIT {
 
     @Override
     protected Class<? extends ChatResponseMetadata> chatResponseMetadataType(StreamingChatModel streamingChatModel) {
-        if (streamingChatModel instanceof OpenAiOfficialStreamingChatModel) {
-            return OpenAiOfficialChatResponseMetadata.class;
+        if (streamingChatModel instanceof OpenAiStreamingChatModel) {
+            return OpenAiChatResponseMetadata.class;
         } else if (streamingChatModel instanceof OllamaStreamingChatModel) {
             return ChatResponseMetadata.class;
         } else {
@@ -269,8 +266,8 @@ class OllamaStreamingChatModelIT extends AbstractStreamingChatModelIT {
 
     @Override
     protected Class<? extends TokenUsage> tokenUsageType(StreamingChatModel streamingChatModel) {
-        if (streamingChatModel instanceof OpenAiOfficialStreamingChatModel) {
-            return OpenAiOfficialTokenUsage.class;
+        if (streamingChatModel instanceof OpenAiStreamingChatModel) {
+            return OpenAiTokenUsage.class;
         } else if (streamingChatModel instanceof OllamaStreamingChatModel) {
             return TokenUsage.class;
         } else {
@@ -280,7 +277,7 @@ class OllamaStreamingChatModelIT extends AbstractStreamingChatModelIT {
 
     @Override
     protected void verifyToolCallbacks(StreamingChatResponseHandler handler, InOrder io, String id, StreamingChatModel model) {
-        if (model instanceof OpenAiOfficialStreamingChatModel) {
+        if (model instanceof OpenAiStreamingChatModel) {
             io.verify(handler).onPartialToolCall(eq(partial(0, id, "getWeather", "{\"city\":\"Munich\"}")), any());
         }
         io.verify(handler).onCompleteToolCall(complete(0, id, "getWeather", "{\"city\":\"Munich\"}"));
@@ -288,7 +285,7 @@ class OllamaStreamingChatModelIT extends AbstractStreamingChatModelIT {
 
     @Override
     protected void verifyToolCallbacks(StreamingChatResponseHandler handler, InOrder io, StreamingChatModel model) {
-        if (model instanceof OpenAiOfficialStreamingChatModel) {
+        if (model instanceof OpenAiStreamingChatModel) {
             io.verify(handler).onPartialToolCall(argThat(toolCall ->
                     toolCall.index() == 0
                             && !toolCall.id().isBlank()
@@ -311,7 +308,7 @@ class OllamaStreamingChatModelIT extends AbstractStreamingChatModelIT {
     protected void verifyToolCallbacks(StreamingChatResponseHandler handler, InOrder io, String id1, String id2, StreamingChatModel model) {
         verifyToolCallbacks(handler, io, id1, model);
 
-        if (model instanceof OpenAiOfficialStreamingChatModel) {
+        if (model instanceof OpenAiStreamingChatModel) {
             io.verify(handler).onPartialToolCall(eq(partial(1, id2, "getTime", "{\"country\":\"France\"}")), any());
         }
         io.verify(handler).onCompleteToolCall(complete(1, id2, "getTime", "{\"country\":\"France\"}"));
@@ -319,6 +316,6 @@ class OllamaStreamingChatModelIT extends AbstractStreamingChatModelIT {
 
     @Override
     protected boolean supportsPartialToolStreaming(StreamingChatModel model) {
-        return model instanceof OpenAiOfficialStreamingChatModel;
+        return model instanceof OpenAiStreamingChatModel;
     }
 }

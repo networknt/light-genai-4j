@@ -6,9 +6,9 @@ import static com.networknt.genai.model.ollama.common.OllamaStreamingChatModelIT
 import com.networknt.genai.model.chat.StreamingChatModel;
 import com.networknt.genai.model.chat.response.ChatResponseMetadata;
 import com.networknt.genai.model.ollama.OllamaStreamingChatModel;
-import com.networknt.genai.model.openaiofficial.OpenAiOfficialChatResponseMetadata;
-import com.networknt.genai.model.openaiofficial.OpenAiOfficialStreamingChatModel;
-import com.networknt.genai.model.openaiofficial.OpenAiOfficialTokenUsage;
+import com.networknt.genai.model.openai.OpenAiChatResponseMetadata;
+import com.networknt.genai.model.openai.OpenAiStreamingChatModel;
+import com.networknt.genai.model.openai.OpenAiTokenUsage;
 import com.networknt.genai.model.output.TokenUsage;
 import com.networknt.genai.service.common.AbstractStreamingAiServiceIT;
 import java.util.List;
@@ -22,8 +22,8 @@ class OllamaStreamingAiServiceIT extends AbstractStreamingAiServiceIT {
 
     @Override
     protected Class<? extends ChatResponseMetadata> chatResponseMetadataType(StreamingChatModel streamingChatModel) {
-        if (streamingChatModel instanceof OpenAiOfficialStreamingChatModel) {
-            return OpenAiOfficialChatResponseMetadata.class;
+        if (streamingChatModel instanceof OpenAiStreamingChatModel) {
+            return OpenAiChatResponseMetadata.class;
         } else if (streamingChatModel instanceof OllamaStreamingChatModel) {
             return ChatResponseMetadata.class;
         } else {
@@ -33,8 +33,8 @@ class OllamaStreamingAiServiceIT extends AbstractStreamingAiServiceIT {
 
     @Override
     protected Class<? extends TokenUsage> tokenUsageType(StreamingChatModel streamingChatModel) {
-        if (streamingChatModel instanceof OpenAiOfficialStreamingChatModel) {
-            return OpenAiOfficialTokenUsage.class;
+        if (streamingChatModel instanceof OpenAiStreamingChatModel) {
+            return OpenAiTokenUsage.class;
         } else if (streamingChatModel instanceof OllamaStreamingChatModel) {
             return TokenUsage.class;
         } else {
