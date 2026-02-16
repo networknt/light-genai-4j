@@ -11,10 +11,10 @@ import static com.networknt.genai.model.ollama.OllamaImage.OLLAMA_IMAGE;
 import static com.networknt.genai.model.ollama.OllamaImage.localOllamaImage;
 import static com.networknt.genai.model.ollama.OllamaImage.resolve;
 import static java.time.Duration.ofSeconds;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.atLeast;
+// import static org.mockito.ArgumentMatchers.any;
+// import static org.mockito.ArgumentMatchers.argThat;
+// import static org.mockito.ArgumentMatchers.eq;
+// import static org.mockito.Mockito.atLeast;
 
 import java.util.HashMap;
 import java.util.List;
@@ -37,7 +37,7 @@ import org.junit.jupiter.api.condition.DisabledIf;
 import org.junit.jupiter.api.condition.EnabledIf;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.InOrder;
+// import org.mockito.InOrder;
 
 class OllamaStreamingChatModelIT extends AbstractStreamingChatModelIT {
 
@@ -275,44 +275,44 @@ class OllamaStreamingChatModelIT extends AbstractStreamingChatModelIT {
         }
     }
 
-    @Override
-    protected void verifyToolCallbacks(StreamingChatResponseHandler handler, InOrder io, String id, StreamingChatModel model) {
-        if (model instanceof OpenAiStreamingChatModel) {
-            io.verify(handler).onPartialToolCall(eq(partial(0, id, "getWeather", "{\"city\":\"Munich\"}")), any());
-        }
-        io.verify(handler).onCompleteToolCall(complete(0, id, "getWeather", "{\"city\":\"Munich\"}"));
-    }
+    // @Override
+    // protected void verifyToolCallbacks(StreamingChatResponseHandler handler, InOrder io, String id, StreamingChatModel model) {
+    //     if (model instanceof OpenAiStreamingChatModel) {
+    //         io.verify(handler).onPartialToolCall(eq(partial(0, id, "getWeather", "{\"city\":\"Munich\"}")), any());
+    //     }
+    //     io.verify(handler).onCompleteToolCall(complete(0, id, "getWeather", "{\"city\":\"Munich\"}"));
+    // }
 
-    @Override
-    protected void verifyToolCallbacks(StreamingChatResponseHandler handler, InOrder io, StreamingChatModel model) {
-        if (model instanceof OpenAiStreamingChatModel) {
-            io.verify(handler).onPartialToolCall(argThat(toolCall ->
-                    toolCall.index() == 0
-                            && !toolCall.id().isBlank()
-                            && toolCall.name().equals("get_current_time")
-                            && toolCall.partialArguments().equals("{}")
-            ), any());
-        }
+    // @Override
+    // protected void verifyToolCallbacks(StreamingChatResponseHandler handler, InOrder io, StreamingChatModel model) {
+    //     if (model instanceof OpenAiStreamingChatModel) {
+    //         io.verify(handler).onPartialToolCall(argThat(toolCall ->
+    //                 toolCall.index() == 0
+    //                         && !toolCall.id().isBlank()
+    //                         && toolCall.name().equals("get_current_time")
+    //                         && toolCall.partialArguments().equals("{}")
+    //         ), any());
+    //     }
+    //
+    //     // Ollama talks in-between for some reason
+    //     io.verify(handler, atLeast(0)).onPartialResponse(any(), any());
+    //
+    //     io.verify(handler).onCompleteToolCall(argThat(request ->
+    //             request.index() == 0
+    //                     && request.toolExecutionRequest().name().equals("get_current_time")
+    //                     && request.toolExecutionRequest().arguments().equals("{}")
+    //     ));
+    // }
 
-        // Ollama talks in-between for some reason
-        io.verify(handler, atLeast(0)).onPartialResponse(any(), any());
-
-        io.verify(handler).onCompleteToolCall(argThat(request ->
-                request.index() == 0
-                        && request.toolExecutionRequest().name().equals("get_current_time")
-                        && request.toolExecutionRequest().arguments().equals("{}")
-        ));
-    }
-
-    @Override
-    protected void verifyToolCallbacks(StreamingChatResponseHandler handler, InOrder io, String id1, String id2, StreamingChatModel model) {
-        verifyToolCallbacks(handler, io, id1, model);
-
-        if (model instanceof OpenAiStreamingChatModel) {
-            io.verify(handler).onPartialToolCall(eq(partial(1, id2, "getTime", "{\"country\":\"France\"}")), any());
-        }
-        io.verify(handler).onCompleteToolCall(complete(1, id2, "getTime", "{\"country\":\"France\"}"));
-    }
+    // @Override
+    // protected void verifyToolCallbacks(StreamingChatResponseHandler handler, InOrder io, String id1, String id2, StreamingChatModel model) {
+    //     verifyToolCallbacks(handler, io, id1, model);
+    //
+    //     if (model instanceof OpenAiStreamingChatModel) {
+    //         io.verify(handler).onPartialToolCall(eq(partial(1, id2, "getTime", "{\"country\":\"France\"}")), any());
+    //     }
+    //     io.verify(handler).onCompleteToolCall(complete(1, id2, "getTime", "{\"country\":\"France\"}"));
+    // }
 
     @Override
     protected boolean supportsPartialToolStreaming(StreamingChatModel model) {

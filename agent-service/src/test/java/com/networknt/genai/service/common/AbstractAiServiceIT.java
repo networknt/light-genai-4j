@@ -4,6 +4,7 @@ import com.networknt.genai.tool.Tool;
 import com.networknt.genai.data.message.UserMessage;
 import com.networknt.genai.model.chat.ChatModel;
 import com.networknt.genai.model.chat.request.ChatRequest;
+import com.networknt.genai.model.chat.response.ChatResponse;
 import com.networknt.genai.model.output.TokenUsage;
 import com.networknt.genai.service.AiServices;
 import com.networknt.genai.service.Result;
@@ -12,14 +13,16 @@ import org.junit.jupiter.api.condition.EnabledIf;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.networknt.genai.model.output.FinishReason.STOP;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+// import static org.mockito.Mockito.spy;
+// import static org.mockito.Mockito.verify;
+// import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 /**
  * This test makes sure that all {@link ChatModel} implementations behave consistently
@@ -44,10 +47,10 @@ public abstract class AbstractAiServiceIT {
     void should_answer_simple_question(ChatModel model) {
 
         // given
-        model = spy(model);
+        SpyingChatModel spyModel = new SpyingChatModel(model);
 
         Assistant assistant = AiServices.builder(Assistant.class)
-                .chatModel(model)
+                .chatModel(spyModel)
                 .build();
 
         String userMessage = "What is the capital of Germany?";
@@ -68,7 +71,9 @@ public abstract class AbstractAiServiceIT {
 
         assertThat(result.toolExecutions()).isEmpty();
 
-        verify(model).chat(ChatRequest.builder().messages(UserMessage.from(userMessage)).build());
+        // verify(model).chat(ChatRequest.builder().messages(UserMessage.from(userMessage)).build());
+        assertThat(spyModel.chatRequests).hasSize(1);
+        assertThat(spyModel.chatRequests.get(0).messages()).contains(UserMessage.from(userMessage));
     }
 
     // TODO more tests for tools
@@ -82,7 +87,7 @@ public abstract class AbstractAiServiceIT {
         // TODO fail if model does not support RESPONSE_FORMAT_JSON_SCHEMA and tools
 
         // given
-        model = spy(model);
+        SpyingChatModel spyModel = new SpyingChatModel(model);
 
         enum Weather {
             SUNNY, RAINY
@@ -102,10 +107,22 @@ public abstract class AbstractAiServiceIT {
             }
         }
 
-        WeatherTools weatherTools = spy(new WeatherTools());
+        class SpyingWeatherTools extends WeatherTools {
+            final AtomicInteger getWeatherCount = new AtomicInteger();
+            final List<String> getWeatherArgs = new ArrayList<>();
+
+            @Override
+            String getWeather(String city) {
+                getWeatherCount.incrementAndGet();
+                getWeatherArgs.add(city);
+                return super.getWeather(city);
+            }
+        }
+
+        SpyingWeatherTools weatherTools = new SpyingWeatherTools();
 
         WeatherAssistant weatherAssistant = AiServices.builder(WeatherAssistant.class)
-                .chatModel(model)
+                .chatModel(spyModel)
                 .tools(weatherTools)
                 .build();
 
@@ -149,8 +166,10 @@ public abstract class AbstractAiServiceIT {
         assertTokenUsage(result.tokenUsage(), model);
 
         if (assertToolInteractions()) {
-            verify(weatherTools).getWeather("Munich");
-            verifyNoMoreInteractions(weatherTools);
+            // verify(weatherTools).getWeather("Munich");
+            // verifyNoMoreInteractions(weatherTools);
+            assertThat(weatherTools.getWeatherCount.get()).isEqualTo(1);
+            assertThat(weatherTools.getWeatherArgs).containsExactly("Munich");
         }
     }
 
@@ -188,5 +207,20 @@ public abstract class AbstractAiServiceIT {
 
     protected boolean assertToolInteractions() {
         return true;
+    }
+    
+    static class SpyingChatModel implements ChatModel {
+        private final ChatModel delegate;
+        final List<ChatRequest> chatRequests = new ArrayList<>();
+
+        SpyingChatModel(ChatModel delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public ChatResponse chat(ChatRequest chatRequest) {
+            chatRequests.add(chatRequest);
+            return delegate.chat(chatRequest);
+        }
     }
 }

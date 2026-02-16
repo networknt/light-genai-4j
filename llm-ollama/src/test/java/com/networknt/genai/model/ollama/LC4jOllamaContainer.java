@@ -20,6 +20,13 @@ public class LC4jOllamaContainer extends OllamaContainer {
     public LC4jOllamaContainer(DockerImageName dockerImageName) {
         super(dockerImageName);
         this.models = new ArrayList<>();
+        // Fix for "nvidia-container-cli: initialization error" on systems with broken/missing NVIDIA setup
+        // This forces the container to not request GPU devices, falling back to CPU.
+        this.withCreateContainerCmdModifier(cmd -> {
+            if (cmd.getHostConfig() != null) {
+                cmd.getHostConfig().withDeviceRequests(null);
+            }
+        });
     }
 
     public LC4jOllamaContainer withModel(String model) {

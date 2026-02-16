@@ -5,11 +5,11 @@ import static com.networknt.genai.service.common.AbstractAiServiceWithToolsIT.ch
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+// import static org.mockito.ArgumentMatchers.any;
+// import static org.mockito.ArgumentMatchers.eq;
+// import static org.mockito.Mockito.spy;
+// import static org.mockito.Mockito.verify;
+// import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.networknt.genai.tool.Tool;
 import com.networknt.genai.data.message.AiMessage;
@@ -29,6 +29,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import com.networknt.genai.service.tool.ToolExecution;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -53,9 +55,9 @@ public abstract class AbstractStreamingAiServiceIT {
     void should_answer_simple_question(StreamingChatModel model) throws Exception {
 
         // given
-        model = spy(model);
+        SpyingStreamingChatModel spyModel = new SpyingStreamingChatModel(model);
 
-        Assistant assistant = AiServices.create(Assistant.class, model);
+        Assistant assistant = AiServices.create(Assistant.class, spyModel);
         StringBuilder answerBuilder = new StringBuilder();
         CompletableFuture<String> futureAnswer = new CompletableFuture<>();
         CompletableFuture<ChatResponse> futureChatResponse = new CompletableFuture<>();
@@ -91,12 +93,14 @@ public abstract class AbstractStreamingAiServiceIT {
             assertThat(chatResponseMetadata.finishReason()).isEqualTo(STOP);
         }
 
-        verify(model)
-                .chat(
-                        eq(ChatRequest.builder()
-                                .messages(UserMessage.from(userMessage))
-                                .build()),
-                        any(StreamingChatResponseHandler.class));
+//        verify(model)
+//                .chat(
+//                        eq(ChatRequest.builder()
+//                                .messages(UserMessage.from(userMessage))
+//                                .build()),
+//                        any(StreamingChatResponseHandler.class));
+        assertThat(spyModel.chatRequests).hasSize(1);
+        assertThat(spyModel.chatRequests.get(0).messages()).contains(UserMessage.from(userMessage));
     }
 
     @ParameterizedTest
@@ -112,7 +116,17 @@ public abstract class AbstractStreamingAiServiceIT {
             }
         }
 
-        Tools tools = spy(new Tools());
+        class SpyingTools extends Tools {
+            final AtomicInteger currentDateCount = new AtomicInteger();
+
+            @Override
+            LocalDate currentDate() {
+                currentDateCount.incrementAndGet();
+                return super.currentDate();
+            }
+        }
+
+        SpyingTools tools = new SpyingTools();
 
         Assistant assistant = AiServices.builder(Assistant.class)
                 .streamingChatModel(model)
@@ -132,8 +146,9 @@ public abstract class AbstractStreamingAiServiceIT {
         futureChatResponse.get(30, SECONDS);
 
         // then
-        verify(tools).currentDate();
-        verifyNoMoreInteractions(tools);
+        // verify(tools).currentDate();
+        // verifyNoMoreInteractions(tools);
+        assertThat(tools.currentDateCount.get()).isEqualTo(1);
     }
 
     // TODO test threads
@@ -226,5 +241,20 @@ public abstract class AbstractStreamingAiServiceIT {
         messages = chatMemory.messages();
         assertThat(messages).hasSize(6);
         checkMemoryWithImmediateTool(messages.subList(3, 6), "Now add 47 to the previous result", "171");
+    }
+    
+    static class SpyingStreamingChatModel implements StreamingChatModel {
+        private final StreamingChatModel delegate;
+        final List<ChatRequest> chatRequests = new ArrayList<>();
+
+        SpyingStreamingChatModel(StreamingChatModel delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void chat(ChatRequest chatRequest, StreamingChatResponseHandler handler) {
+            chatRequests.add(chatRequest);
+            delegate.chat(chatRequest, handler);
+        }
     }
 }

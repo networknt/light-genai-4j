@@ -3,12 +3,12 @@ package com.networknt.genai.model.chat.common;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+// import static org.mockito.ArgumentMatchers.any;
+// import static org.mockito.Mockito.mock;
+// import static org.mockito.Mockito.spy;
+// import static org.mockito.Mockito.times;
+// import static org.mockito.Mockito.verify;
+// import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -125,7 +125,26 @@ public abstract class AbstractStreamingChatModelIT extends AbstractBaseChatModel
             }
         };
 
-        ChatModelListener listener = mock(ChatModelListener.class);
+        AtomicInteger onRequestCalled = new AtomicInteger();
+        AtomicInteger onErrorCalled = new AtomicInteger();
+        AtomicInteger onResponseCalled = new AtomicInteger();
+        ChatModelListener listener = new ChatModelListener() {
+            @Override
+            public void onRequest(com.networknt.genai.model.chat.listener.ChatModelRequestContext requestContext) {
+                onRequestCalled.incrementAndGet();
+            }
+
+            @Override
+            public void onResponse(com.networknt.genai.model.chat.listener.ChatModelResponseContext responseContext) {
+                onResponseCalled.incrementAndGet();
+            }
+
+            @Override
+            public void onError(com.networknt.genai.model.chat.listener.ChatModelErrorContext errorContext) {
+                onErrorCalled.incrementAndGet();
+            }
+        };
+
         StreamingChatModel model = createModelWith(listener);
         if (model == null) {
             return;
@@ -146,10 +165,9 @@ public abstract class AbstractStreamingChatModelIT extends AbstractBaseChatModel
             assertThat(error).isEqualTo(userCodeException);
         }
 
-        verify(listener).onRequest(any());
-        verify(listener, times(onPartialResponseCalled.get())).onError(any());
-        verify(listener).onResponse(any());
-        verifyNoMoreInteractions(listener);
+        assertThat(onRequestCalled.get()).isEqualTo(1);
+        assertThat(onErrorCalled.get()).isEqualTo(onPartialResponseCalled.get());
+        assertThat(onResponseCalled.get()).isEqualTo(1);
     }
 
     @Test
@@ -180,7 +198,26 @@ public abstract class AbstractStreamingChatModelIT extends AbstractBaseChatModel
             }
         };
 
-        ChatModelListener listener = mock(ChatModelListener.class);
+        AtomicInteger onRequestCalled = new AtomicInteger();
+        AtomicInteger onErrorCalled = new AtomicInteger();
+        AtomicInteger onResponseCalled = new AtomicInteger();
+        ChatModelListener listener = new ChatModelListener() {
+            @Override
+            public void onRequest(com.networknt.genai.model.chat.listener.ChatModelRequestContext requestContext) {
+                onRequestCalled.incrementAndGet();
+            }
+
+            @Override
+            public void onResponse(com.networknt.genai.model.chat.listener.ChatModelResponseContext responseContext) {
+                onResponseCalled.incrementAndGet();
+            }
+
+            @Override
+            public void onError(com.networknt.genai.model.chat.listener.ChatModelErrorContext errorContext) {
+                onErrorCalled.incrementAndGet();
+            }
+        };
+
         StreamingChatModel model = createModelWith(listener);
         if (model == null) {
             return;
@@ -197,10 +234,9 @@ public abstract class AbstractStreamingChatModelIT extends AbstractBaseChatModel
         assertThat(errors).hasSize(1);
         assertThat(errors.get(0)).isEqualTo(userCodeException);
 
-        verify(listener).onRequest(any());
-        verify(listener).onError(any());
-        verify(listener).onResponse(any());
-        verifyNoMoreInteractions(listener);
+        assertThat(onRequestCalled.get()).isEqualTo(1);
+        assertThat(onErrorCalled.get()).isEqualTo(1);
+        assertThat(onResponseCalled.get()).isEqualTo(1);
     }
 
     @Test
@@ -232,7 +268,26 @@ public abstract class AbstractStreamingChatModelIT extends AbstractBaseChatModel
             }
         };
 
-        ChatModelListener listener = mock(ChatModelListener.class);
+        AtomicInteger onRequestCalled = new AtomicInteger();
+        AtomicInteger onErrorCalled = new AtomicInteger();
+        AtomicInteger onResponseCalled = new AtomicInteger();
+        ChatModelListener listener = new ChatModelListener() {
+            @Override
+            public void onRequest(com.networknt.genai.model.chat.listener.ChatModelRequestContext requestContext) {
+                onRequestCalled.incrementAndGet();
+            }
+
+            @Override
+            public void onResponse(com.networknt.genai.model.chat.listener.ChatModelResponseContext responseContext) {
+                onResponseCalled.incrementAndGet();
+            }
+
+            @Override
+            public void onError(com.networknt.genai.model.chat.listener.ChatModelErrorContext errorContext) {
+                onErrorCalled.incrementAndGet();
+            }
+        };
+
         StreamingChatModel model = createModelWith(listener);
         if (model == null) {
             return;
@@ -249,10 +304,9 @@ public abstract class AbstractStreamingChatModelIT extends AbstractBaseChatModel
         assertThat(errors).hasSize(1);
         assertThat(errors.get(0)).isEqualTo(userCodeException);
 
-        verify(listener).onRequest(any());
-        verify(listener).onError(any());
-        verify(listener).onResponse(any());
-        verifyNoMoreInteractions(listener);
+        assertThat(onRequestCalled.get()).isEqualTo(1);
+        assertThat(onErrorCalled.get()).isEqualTo(1);
+        assertThat(onResponseCalled.get()).isEqualTo(1);
     }
 
     @Override
@@ -336,7 +390,52 @@ public abstract class AbstractStreamingChatModelIT extends AbstractBaseChatModel
             }
         };
 
-        StreamingChatResponseHandler spyHandler = spy(handler);
+        StreamingChatResponseHandler spyHandler = new StreamingChatResponseHandler() {
+            @Override
+            public void onPartialResponse(String partialResponse) {
+                handler.onPartialResponse(partialResponse);
+            }
+
+            @Override
+            public void onPartialResponse(PartialResponse partialResponse, PartialResponseContext context) {
+                handler.onPartialResponse(partialResponse, context);
+            }
+
+            @Override
+            public void onPartialThinking(PartialThinking partialThinking) {
+                handler.onPartialThinking(partialThinking);
+            }
+
+            @Override
+            public void onPartialThinking(PartialThinking partialThinking, PartialThinkingContext context) {
+                handler.onPartialThinking(partialThinking, context);
+            }
+
+            @Override
+            public void onPartialToolCall(PartialToolCall partialToolCall) {
+                handler.onPartialToolCall(partialToolCall);
+            }
+
+            @Override
+            public void onPartialToolCall(PartialToolCall partialToolCall, PartialToolCallContext context) {
+                handler.onPartialToolCall(partialToolCall, context);
+            }
+
+            @Override
+            public void onCompleteToolCall(CompleteToolCall completeToolCall) {
+                handler.onCompleteToolCall(completeToolCall);
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                handler.onCompleteResponse(completeResponse);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                handler.onError(error);
+            }
+        };
         chatModel.chat(chatRequest, spyHandler);
 
         ChatResponse chatResponse = null;

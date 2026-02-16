@@ -1,32 +1,28 @@
 package com.networknt.genai.model.ollama;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.util.JsonParserDelegate;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
 class OllamaDateDeserializerTest {
-
-    @Mock
-    JsonParser jsonParser;
-    @Mock
-    DeserializationContext deserializationContext;
 
     @Test
     void should_trim_nanoseconds_and_deserialize_utc_date() throws IOException {
-        when(jsonParser.getText()).thenReturn("2024-09-04T15:21:17.521503059Z");
+        JsonParser jsonParser = new JsonParserDelegate(null) {
+            @Override
+            public String getText() throws IOException {
+                return "2024-09-04T15:21:17.521503059Z";
+            }
+        };
 
-        OffsetDateTime offsetDateTime = new OllamaDateDeserializer().deserialize(jsonParser, deserializationContext);
+        OffsetDateTime offsetDateTime = new OllamaDateDeserializer().deserialize(jsonParser, null);
 
         assertThat(offsetDateTime.getOffset()).isEqualTo(ZoneOffset.UTC);
         assertThat(offsetDateTime.getYear()).isEqualTo(2024);
@@ -37,9 +33,14 @@ class OllamaDateDeserializerTest {
 
     @Test
     void should_trim_nanoseconds_and_deserialize_utc_date_with_offset() throws IOException {
-        when(jsonParser.getText()).thenReturn("2024-08-04T00:54:54.764563036+02:00");
+        JsonParser jsonParser = new JsonParserDelegate(null) {
+            @Override
+            public String getText() throws IOException {
+                return "2024-08-04T00:54:54.764563036+02:00";
+            }
+        };
 
-        OffsetDateTime offsetDateTime = new OllamaDateDeserializer().deserialize(jsonParser, deserializationContext);
+        OffsetDateTime offsetDateTime = new OllamaDateDeserializer().deserialize(jsonParser, null);
 
         assertThat(offsetDateTime.getOffset()).isEqualTo(ZoneOffset.ofHours(2));
         assertThat(offsetDateTime.getYear()).isEqualTo(2024);
@@ -51,9 +52,14 @@ class OllamaDateDeserializerTest {
 
     @Test
     void should_trim_nanoseconds_and_deserialize_utc_date_with_negative_offset() throws IOException {
-        when(jsonParser.getText()).thenReturn("2024-06-15T05:18:13.974383393-07:00");
+        JsonParser jsonParser = new JsonParserDelegate(null) {
+            @Override
+            public String getText() throws IOException {
+                return "2024-06-15T05:18:13.974383393-07:00";
+            }
+        };
 
-        OffsetDateTime offsetDateTime = new OllamaDateDeserializer().deserialize(jsonParser, deserializationContext);
+        OffsetDateTime offsetDateTime = new OllamaDateDeserializer().deserialize(jsonParser, null);
 
         assertThat(offsetDateTime.getOffset()).isEqualTo(ZoneOffset.ofHours(-7));
         assertThat(offsetDateTime.getYear()).isEqualTo(2024);
